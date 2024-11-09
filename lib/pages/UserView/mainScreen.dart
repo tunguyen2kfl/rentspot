@@ -15,7 +15,6 @@ class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0; // Default to Home page
 
   final List<Widget> _pages = [
-    HomePage(),
     SchedulesView(),
     ProfilePage(),
   ];

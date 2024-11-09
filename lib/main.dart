@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:rent_spot/pages/AdminUser/roomMgmt.dart';
+import 'package:rent_spot/pages/AdminUser/waitingSchedule.dart';
 import 'package:rent_spot/pages/UserView/mainScreen.dart';
+import 'package:rent_spot/pages/createBuilding.dart';
+import 'package:rent_spot/pages/joinBuilding.dart';
 import 'package:rent_spot/pages/login.dart';
 import 'package:rent_spot/pages/splash.dart';
+import 'package:rent_spot/pages/updateBuilding.dart';
+import 'package:rent_spot/pages/viewBuilding.dart';
 import 'package:rent_spot/pages/welcome.dart';
 
 void main() {
@@ -27,7 +33,7 @@ class MyApp extends StatelessWidget {
         // colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MainScreen(),
+      home: RoomManagementView(),
     );
   }
 }

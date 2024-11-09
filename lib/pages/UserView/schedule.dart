@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rent_spot/components/CustomAppBar.dart';
+import 'package:rent_spot/components/UpdateScheduleModal.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'dart:math';
 import 'package:intl/intl.dart'; // Import for date formatting
@@ -175,10 +176,8 @@ class _SchedulesViewState extends State<SchedulesView> {
             );
           },
           onTap: (CalendarTapDetails details) {
-            if (details.targetElement == CalendarElement.appointment) {
-              final Appointment appointment = details.appointments![0];
-              print('Event clicked: ${appointment.id}');
-            }
+            final Appointment appointment = details.appointments![0];
+            _showBottomSheet(context, appointment);
           },
         ),
       ),
@@ -191,4 +190,74 @@ class _DataSource extends CalendarDataSource {
     appointments = source;
     resources = resourceColl;
   }
+}
+
+void _showBottomSheet(BuildContext context, Appointment appointment) {
+  showModalBottomSheet(
+    context: context,
+    builder: (BuildContext context) {
+      return Container(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            ListTile(
+              leading: const Icon(Icons.edit),
+              title: const Text('Update Schedule'),
+              onTap: () {
+                Navigator.pop(context); // Close bottom sheet
+                _showUpdateModal(context, appointment);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: const Text('Delete', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                Navigator.pop(context); // Close bottom sheet
+                _showDeleteModal(context, appointment);
+              },
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+void _showUpdateModal(BuildContext context, Appointment appointment) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog.fullscreen( // Use Dialog.fullscreen
+        child: UpdateScheduleModal(appointment: appointment),
+      );
+    },
+  );
+}
+
+void _showDeleteModal(BuildContext context, Appointment appointment) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Delete Schedule'),
+        content: const Text('Are you sure you want to delete this schedule?'),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          TextButton(
+            child: const Text('Delete'),
+            onPressed: () {
+              // Handle delete logic here
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      );
+    },
+  );
 }
