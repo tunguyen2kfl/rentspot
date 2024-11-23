@@ -1,14 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:rent_spot/components/CustomAppBar.dart';
+import 'package:rent_spot/components/SideBar.dart';
 
 class JoinBuildingView extends StatelessWidget {
   final TextEditingController _buildingCodeController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Join Building'),
+      key: _scaffoldKey,
+      appBar: CustomAppBar(
+        title: "Join Building",
+        onSidebarButtonPressed: () {
+          if (_scaffoldKey != null) {
+            _scaffoldKey!.currentState?.openDrawer(); // Mở sidebar
+          }
+        },
+        onBackButtonPressed: () {
+          Navigator.pop(context);
+        },
       ),
+      drawer: const SideMenu(),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -52,7 +66,8 @@ class JoinBuildingView extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(5),
                   ),
-                  minimumSize: Size(double.infinity, 50), // Đặt chiều rộng là 100%
+                  minimumSize:
+                      Size(double.infinity, 50), // Đặt chiều rộng là 100%
                 ),
                 child: const Text(
                   'Join',

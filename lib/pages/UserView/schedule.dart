@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:rent_spot/components/CustomAppBar.dart';
 import 'package:rent_spot/components/UpdateScheduleModal.dart';
+import 'package:rent_spot/stores/userData.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-import 'dart:math';
-import 'package:intl/intl.dart'; // Import for date formatting
+import 'package:intl/intl.dart';
 
 String _formatTime(DateTime time) {
   return DateFormat('hh:mm a').format(time);
@@ -16,7 +17,7 @@ List<Map<String, dynamic>> schedules = [
     'date': DateTime.now(),
     'resourceId': 1,
     'status': 'confirmed',
-    'color': '#007bff', // Blue color
+    'color': '#007bff',
     'startTime': DateTime.now(),
     'endTime': DateTime.now().add(Duration(hours: 2)),
   },
@@ -26,11 +27,10 @@ List<Map<String, dynamic>> schedules = [
     'date': DateTime.now().add(Duration(days: 1)),
     'resourceId': 2,
     'status': 'pending',
-    'color': '#28a745', // Green color
+    'color': '#28a745',
     'startTime': DateTime.now().add(Duration(days: 1, hours: 10)),
     'endTime': DateTime.now().add(Duration(days: 1, hours: 12)),
   },
-  // Add more schedules as needed
 ];
 
 class SchedulesView extends StatefulWidget {
@@ -48,7 +48,7 @@ class _SchedulesViewState extends State<SchedulesView> {
   }
 
   List<CalendarResource> _getCalendarResources() {
-    return <CalendarResource>[
+    return [
       CalendarResource(displayName: 'John', id: '1', color: Colors.white),
       CalendarResource(displayName: 'Smith', id: '2', color: Colors.white),
       CalendarResource(displayName: 'Smith2', id: '3', color: Colors.white),
@@ -56,9 +56,7 @@ class _SchedulesViewState extends State<SchedulesView> {
   }
 
   List<Appointment> _getAppointments() {
-    List<Appointment> calendarSchedules = schedules.map((schedule) {
-      // Assuming schedule['date'] is a DateTime and schedule['startTime'], schedule['endTime'] are TimeOfDay
-
+    return schedules.map((schedule) {
       return Appointment(
         startTime: schedule['startTime'],
         endTime: schedule['endTime'],
@@ -68,23 +66,20 @@ class _SchedulesViewState extends State<SchedulesView> {
         id: schedule['id'],
       );
     }).toList();
-    return calendarSchedules;
   }
 
   @override
   Widget build(BuildContext context) {
+    final userData = Provider.of<UserData>(context);
+    print(userData.role);
+
     return Scaffold(
       appBar: CustomAppBar(
         title: 'Schedule',
-        onBackButtonPressed: () {
-          Navigator.pop(context); // Handle back button press
-        },
-        onSidebarButtonPressed: () {
-          // Handle sidebar button press (e.g., open a drawer)
-        },
+        onSidebarButtonPressed: () {},
       ),
       body: Padding(
-        padding: const EdgeInsets.only(bottom: 16.0, top: 10), // Add bottom padding
+        padding: const EdgeInsets.only(bottom: 16.0, top: 10),
         child: SfCalendar(
           view: CalendarView.timelineDay,
           dataSource: _events,
@@ -94,8 +89,7 @@ class _SchedulesViewState extends State<SchedulesView> {
               textStyle: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
-                  fontSize: 24)
-          ),
+                  fontSize: 24)),
           todayHighlightColor: const Color(0xFF3DA9FC),
           showNavigationArrow: true,
           showDatePickerButton: true,
@@ -104,8 +98,10 @@ class _SchedulesViewState extends State<SchedulesView> {
               timeIntervalWidth: 200,
               timeInterval: Duration(minutes: 60),
               timeFormat: 'hh:mm a',
-              timeTextStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black38),
-          ),
+              timeTextStyle: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black38)),
           viewHeaderStyle: const ViewHeaderStyle(
             dayTextStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             dateTextStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -119,24 +115,20 @@ class _SchedulesViewState extends State<SchedulesView> {
               decoration: BoxDecoration(
                 border: const Border(
                   top: BorderSide(color: Colors.grey, width: 0.5),
-                  right: BorderSide(
-                      color: Colors.grey, width: 0.5), // Right border
-                  bottom: BorderSide(
-                      color: Colors.grey, width: 0.5), // Bottom border
+                  right: BorderSide(color: Colors.grey, width: 0.5),
+                  bottom: BorderSide(color: Colors.grey, width: 0.5),
                 ),
-                color: resource.color, // Set header background color
+                color: resource.color,
               ),
               child: Center(
-                // Center the content
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
                     resource.displayName,
                     style: const TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14),
                   ),
                 ),
               ),
@@ -145,7 +137,6 @@ class _SchedulesViewState extends State<SchedulesView> {
           appointmentBuilder:
               (BuildContext context, CalendarAppointmentDetails details) {
             final Appointment appointment = details.appointments.first;
-            // Find the corresponding schedule based on the appointment ID
             final schedule =
                 schedules.firstWhere((s) => s['id'] == appointment.id);
             return Container(
@@ -160,12 +151,9 @@ class _SchedulesViewState extends State<SchedulesView> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    // schedule['summary'], // Use summary from schedule data
-                    appointment.subject,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
+                  Text(appointment.subject,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.white)),
                   const SizedBox(height: 4.0),
                   Text(
                     '${_formatTime(appointment.startTime)} - ${_formatTime(appointment.endTime)}',
@@ -205,7 +193,7 @@ void _showBottomSheet(BuildContext context, Appointment appointment) {
               leading: const Icon(Icons.edit),
               title: const Text('Update Schedule'),
               onTap: () {
-                Navigator.pop(context); // Close bottom sheet
+                Navigator.pop(context);
                 _showUpdateModal(context, appointment);
               },
             ),
@@ -213,7 +201,7 @@ void _showBottomSheet(BuildContext context, Appointment appointment) {
               leading: const Icon(Icons.delete, color: Colors.red),
               title: const Text('Delete', style: TextStyle(color: Colors.red)),
               onTap: () {
-                Navigator.pop(context); // Close bottom sheet
+                Navigator.pop(context);
                 _showDeleteModal(context, appointment);
               },
             ),
@@ -228,7 +216,7 @@ void _showUpdateModal(BuildContext context, Appointment appointment) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
-      return Dialog.fullscreen( // Use Dialog.fullscreen
+      return Dialog.fullscreen(
         child: UpdateScheduleModal(appointment: appointment),
       );
     },
@@ -252,7 +240,6 @@ void _showDeleteModal(BuildContext context, Appointment appointment) {
           TextButton(
             child: const Text('Delete'),
             onPressed: () {
-              // Handle delete logic here
               Navigator.pop(context);
             },
           ),

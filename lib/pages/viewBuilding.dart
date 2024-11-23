@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rent_spot/pages/updateBuilding.dart';
+import 'package:rent_spot/pages/AdminUser/updateBuilding.dart';
 
 class BuildingInformationView extends StatefulWidget {
   const BuildingInformationView({Key? key}) : super(key: key);
