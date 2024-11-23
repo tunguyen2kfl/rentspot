@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rent_spot/components/CustomAppBar.dart';
+import 'package:rent_spot/components/SideBar.dart';
 import 'package:rent_spot/components/UpdateScheduleModal.dart';
 import 'package:rent_spot/stores/userData.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -71,13 +72,24 @@ class _SchedulesViewState extends State<SchedulesView> {
   @override
   Widget build(BuildContext context) {
     final userData = Provider.of<UserData>(context);
+    final _formKey = GlobalKey<FormState>();
+    final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
     print(userData.role);
 
     return Scaffold(
+      key: _scaffoldKey,
       appBar: CustomAppBar(
-        title: 'Schedule',
-        onSidebarButtonPressed: () {},
+        title: "Schedule",
+        onSidebarButtonPressed: () {
+          if (_scaffoldKey != null) {
+            _scaffoldKey!.currentState?.openDrawer(); // Mở sidebar
+          }
+        },
+        onBackButtonPressed: () {
+          Navigator.pop(context);
+        },
       ),
+      drawer: const SideMenu(),
       body: Padding(
         padding: const EdgeInsets.only(bottom: 16.0, top: 10),
         child: SfCalendar(

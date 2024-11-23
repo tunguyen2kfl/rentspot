@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rent_spot/api/userApi.dart';
+import 'package:rent_spot/pages/AdminUser/mainAdminScreen.dart';
 import 'package:rent_spot/pages/AdminUser/waitingSchedule.dart';
 import 'package:rent_spot/pages/UserView/mainScreen.dart';
 import 'package:rent_spot/pages/NoRole/welcome.dart';
 import 'package:rent_spot/pages/login.dart';
 import 'package:rent_spot/pages/splash.dart';
+import 'package:rent_spot/stores/building.dart';
 import 'package:rent_spot/stores/userData.dart';
 
 void main() {
@@ -50,7 +52,7 @@ class _MyAppState extends State<MyApp> {
     final userData = Provider.of<UserData>(context);
 
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Rent Spot',
       theme: ThemeData(
         fontFamily: 'Raleway',
         scaffoldBackgroundColor: Colors.white,
@@ -84,9 +86,9 @@ class _MyAppState extends State<MyApp> {
       if (userData.role == null) {
         return WelcomeScreen();
       } else if (userData.role == 'user') {
-        return MainScreen();
-      } else if (userData.role == 'buildingAdmin') {
-        return WaitingScheduleView();
+        return const MainScreen();
+      } else if (userData.role == 'building-admin') {
+        return MainAdminScreen();
       } else {
         return WelcomeScreen();
       }

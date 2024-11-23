@@ -1,4 +1,5 @@
 class Building {
+  final int? id; // Thêm trường id
   final String? name;
   final String? address;
   final String? website;
@@ -7,6 +8,7 @@ class Building {
   final String? inviteCode;
 
   Building({
+    this.id, // Khởi tạo id
     this.name,
     this.address,
     this.website,
@@ -17,6 +19,7 @@ class Building {
 
   factory Building.fromJson(Map<String, dynamic> json) {
     return Building(
+      id: json['id'], // Lấy id từ json
       name: json['name'],
       address: json['address'],
       website: json['website'],
@@ -28,6 +31,7 @@ class Building {
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id, // Chuyển đổi id thành json
       'name': name,
       'address': address,
       'website': website,

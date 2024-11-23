@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rent_spot/api/userApi.dart';
+import 'package:rent_spot/pages/AdminUser/mainAdminScreen.dart';
+import 'package:rent_spot/pages/AdminUser/waitingSchedule.dart';
+import 'package:rent_spot/pages/NoRole/welcome.dart';
 import 'package:rent_spot/pages/UserView/mainScreen.dart';
 import 'package:rent_spot/stores/userData.dart';
 
@@ -86,7 +89,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
       try {
         final res = await userApi.login(_usernameController.text, _passwordController.text);
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MainScreen()));
+        if (res.role == null) {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => WelcomeScreen()));
+        } else if (res.role == 'user') {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MainScreen()));
+        } else if (res.role == 'building-admin') {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MainAdminScreen()));
+        } else {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => WelcomeScreen()));
+        }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
       } finally {

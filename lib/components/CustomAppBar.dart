@@ -7,7 +7,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onBackButtonPressed;
   final VoidCallback onSidebarButtonPressed;
 
-
   const CustomAppBar({
     super.key,
     required this.title,
@@ -22,18 +21,29 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Center(
         child: Text(
           title,
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.w500),
         ),
       ),
       leading: onBackButtonPressed != null
           ? IconButton(
-        icon: const Icon(Icons.arrow_back, color: _themeColor,),
-        onPressed: onBackButtonPressed,
-      )
-          : null,
+              icon: const Icon(
+                Icons.arrow_back,
+                color: _themeColor,
+              ),
+              onPressed: onBackButtonPressed,
+            )
+          : IconButton(
+              icon: const Icon(
+                Icons.arrow_back,
+                color: Colors.white,
+              ),
+              onPressed: () {}),
       actions: [
         IconButton(
-          icon: const Icon(Icons.menu, color: _themeColor,),
+          icon: const Icon(
+            Icons.person_2_rounded,
+            color: _themeColor,
+          ),
           onPressed: onSidebarButtonPressed,
         ),
       ],

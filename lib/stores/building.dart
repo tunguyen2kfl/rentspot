@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:rent_spot/models/building.dart';
 
 class BuildingData with ChangeNotifier {
+  int? _id; // Thêm trường id
   String? _name;
   String? _address;
   String? _website;
@@ -15,6 +16,7 @@ class BuildingData with ChangeNotifier {
   Future<void> loadBuildingData() async {
     try {
       print('Loading building data...');
+      _id = int.tryParse(await storage.read(key: 'buildingId') ?? '0'); // Đọc id
       _name = await storage.read(key: 'buildingName');
       _address = await storage.read(key: 'buildingAddress');
       _website = await storage.read(key: 'buildingWebsite');
@@ -29,6 +31,7 @@ class BuildingData with ChangeNotifier {
   }
 
   Future<void> setBuildingInfo(Building building) async {
+    _id = building.id; // Lưu trữ id
     _name = building.name;
     _address = building.address;
     _website = building.website;
@@ -37,6 +40,7 @@ class BuildingData with ChangeNotifier {
     _inviteCode = building.inviteCode;
 
     // Lưu trữ tất cả thông tin vào storage
+    await storage.write(key: 'buildingId', value: _id?.toString()); // Lưu id
     await storage.write(key: 'buildingName', value: _name);
     await storage.write(key: 'buildingAddress', value: _address);
     await storage.write(key: 'buildingWebsite', value: _website);
@@ -48,6 +52,7 @@ class BuildingData with ChangeNotifier {
   }
 
   // Các getter
+  int? get id => _id; // Getter cho id
   String? get name => _name;
   String? get address => _address;
   String? get website => _website;
@@ -56,6 +61,7 @@ class BuildingData with ChangeNotifier {
   String? get inviteCode => _inviteCode;
 
   void clear() async {
+    _id = null; // Xóa id
     _name = null;
     _address = null;
     _website = null;

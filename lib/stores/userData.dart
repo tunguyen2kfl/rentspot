@@ -37,13 +37,11 @@ class UserData with ChangeNotifier {
   // Thêm phương thức setUserInfo để lưu toàn bộ thông tin User
   Future<void> setUserInfo(User user) async {
     _username = user.username;
-    _accessToken = user.password; // Hoặc trường khác cho token
     _email = user.email;
     _displayName = user.displayName;
     _role = user.role;
 
     // Lưu trữ tất cả thông tin vào storage
-    await storage.write(key: 'accessToken', value: _accessToken);
     await storage.write(key: 'username', value: _username);
     await storage.write(key: 'email', value: _email);
     await storage.write(key: 'displayName', value: _displayName);

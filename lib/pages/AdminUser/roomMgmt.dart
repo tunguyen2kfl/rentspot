@@ -39,22 +39,25 @@ class RoomManagementView extends StatelessWidget {
       devices: ['Computer', 'Teleconferencing'],
       description: 'Training Room',
     ),
+    Room(
+      name: 'P.105',
+      isOpen: true,
+      status: 'Active',
+      devices: ['Computer', 'Teleconferencing'],
+      description: 'Training Room',
+    ),
+    Room(
+      name: 'P.106',
+      isOpen: true,
+      status: 'Active',
+      devices: ['Computer', 'Teleconferencing'],
+      description: 'Training Room',
+    ),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Room Management'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              // Logic for adding a new room
-            },
-          ),
-        ],
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView.builder(
@@ -62,28 +65,33 @@ class RoomManagementView extends StatelessWidget {
           itemBuilder: (context, index) {
             final room = rooms[index];
             return Card(
-              margin: const EdgeInsets.symmetric(vertical: 10),
+              color: Colors.white,
+              margin: const EdgeInsets.symmetric(vertical: 5),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Name: ${room.name}',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Name: ${room.name}',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                        ),
+                        Text(
+                          'Status: ${room.status}',
+                          style: TextStyle(
+                            color: room.isOpen ? Colors.green : Colors.red,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      'Status: ${room.status}',
-                      style: TextStyle(
-                        color: room.isOpen ? Colors.green : Colors.red,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold
-                      ),
-                    ),
-                    const SizedBox(height: 4),
                     Text('Description: ${room.description}'),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 0),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
