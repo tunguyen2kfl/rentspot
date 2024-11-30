@@ -35,11 +35,9 @@ class _MyAppState extends State<MyApp> {
     await Future.delayed(const Duration(seconds: 2));
 
     String? accessToken = await userData.storage.read(key: 'accessToken');
-    print('Access token read: $accessToken');
 
     if (accessToken != null) {
       await userData.loadUserData();
-      print('User data loaded');
       return true;
     } else {
       print('No access token found');

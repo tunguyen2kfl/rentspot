@@ -3,11 +3,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:rent_spot/models/user.dart';
 
 class UserData with ChangeNotifier {
+  num? _id;
   String? _accessToken;
   String? _username;
   String? _email;
   String? _displayName;
   String? _avatar;
+  num? _buildingId;
   List<String>? _buildings;
   dynamic _role;
 
@@ -20,6 +22,20 @@ class UserData with ChangeNotifier {
       _username = await storage.read(key: 'username');
       _email = await storage.read(key: 'email');
       _displayName = await storage.read(key: 'displayName');
+      String? idString = await storage.read(key: 'id'); // Đọc id từ storage
+      if (idString != null) {
+        print('idString $idString');
+        _id = int.parse(idString);
+      } else {
+        print('ID not found');
+      }
+      String? idBuildingString = await storage.read(key: 'buildingId');
+      if (idBuildingString != null) {
+        print('idString $idBuildingString');
+        _buildingId = int.parse(idBuildingString);
+      } else {
+        print('ID not found');
+      }
       _role = await storage.read(key: 'role');
       print('User data loaded');
       notifyListeners();
@@ -36,15 +52,20 @@ class UserData with ChangeNotifier {
 
   // Thêm phương thức setUserInfo để lưu toàn bộ thông tin User
   Future<void> setUserInfo(User user) async {
+    print("Start set USER infor");
     _username = user.username;
     _email = user.email;
     _displayName = user.displayName;
     _role = user.role;
+    _id = user.id;
+    _buildingId = user.buildingId;
 
     // Lưu trữ tất cả thông tin vào storage
+    await storage.write(key: 'id', value: _id.toString());
     await storage.write(key: 'username', value: _username);
     await storage.write(key: 'email', value: _email);
     await storage.write(key: 'displayName', value: _displayName);
+    await storage.write(key: 'buildingId', value: _buildingId.toString());
     await storage.write(
         key: 'role', value: _role.toString()); // Chuyển đổi nếu cần
 
@@ -56,6 +77,8 @@ class UserData with ChangeNotifier {
   String? get email => _email;
   String? get displayName => _displayName;
   String? get avatar => _avatar;
+  num? get buildingId => _buildingId;
+  num? get id => _id;
   List<String>? get buildings => _buildings;
   dynamic get role => _role;
 
@@ -65,6 +88,8 @@ class UserData with ChangeNotifier {
     _email = null;
     _displayName = null;
     _role = null;
+    _id = null;
+    _buildingId = null;
     await storage.deleteAll();
     notifyListeners();
   }

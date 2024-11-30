@@ -7,7 +7,6 @@ import 'package:rent_spot/api/buildingApi.dart'; // Import BuildingApi
 import 'package:rent_spot/api/userApi.dart'; // Import UserApi
 import 'package:rent_spot/models/user.dart';
 import 'package:rent_spot/pages/AdminUser/mainAdminScreen.dart';
-import 'package:rent_spot/pages/AdminUser/waitingSchedule.dart';
 import 'package:rent_spot/stores/building.dart';
 import 'package:rent_spot/stores/userData.dart';
 
@@ -33,8 +32,8 @@ class _CreateBuildingViewState extends State<CreateBuildingView> {
   final _inviteCodeController = TextEditingController();
 
   final BuildingApi buildingApi = BuildingApi(BuildingData()); // Khởi tạo BuildingApi
-  final UserApi userApi = UserApi(UserData()); // Khởi tạo UserApi
-  bool _isLoading = false; // Biến để theo dõi trạng thái loading
+  final UserApi userApi = UserApi(UserData());
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -111,7 +110,7 @@ class _CreateBuildingViewState extends State<CreateBuildingView> {
 
         // Gọi API để lấy thông tin người dùng
         try {
-          User user = await userApi.getUserInfo();
+          User user = await userApi.getUserInfo(context);
           print("User info obtained: ${user.username}"); // Kiểm tra thông tin người dùng
 
           // Chuyển tiếp đến màn hình WaitingScheduleView

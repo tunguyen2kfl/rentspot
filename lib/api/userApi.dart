@@ -1,10 +1,15 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:rent_spot/common/constants.dart';
 import 'package:rent_spot/models/user.dart';
+import 'package:rent_spot/pages/login.dart';
 import 'package:rent_spot/stores/userData.dart';
 import 'dart:convert';
 
 class UserApi {
-  final String baseUrl = "http://10.0.2.2:8080";
+  final String baseUrl = Constants.apiUrl;
   final UserData userData;
 
   UserApi(this.userData);
@@ -30,14 +35,14 @@ class UserApi {
   }
 
   // Hàm để lấy thông tin người dùng
-  Future<User> getUserInfo() async {
-    await userData.loadUserData();
-    final accessToken = userData.accessToken; // Lấy accessToken từ UserData
-    print(accessToken);
+  final FlutterSecureStorage storage = FlutterSecureStorage();
+
+  Future<User> getUserInfo(BuildContext context) async {
+    final accessToken = await storage.read(key: 'accessToken');
     final response = await http.get(
-      Uri.parse('$baseUrl/api/users/infor'), // Đường dẫn API lấy thông tin người dùng
+      Uri.parse('$baseUrl/api/users/infor'),
       headers: {
-        'Authorization': 'Bearer $accessToken', // Thêm accessToken vào header
+        'Authorization': 'Bearer $accessToken',
         'Content-Type': 'application/json',
       },
     );
@@ -47,10 +52,20 @@ class UserApi {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       User user = User.fromJson(data);
-      await userData.setUserInfo(user); // Cập nhật thông tin người dùng
+      await userData.setUserInfo(user);
       return user;
     } else {
-      throw Exception('Failed to get user information');
+      // Xử lý lỗi từ response
+      await storage.deleteAll();
+      _navigateToLogin(context);
+      throw Exception('Failed to get user information: ${response.statusCode}');
     }
+  }
+
+  void _navigateToLogin(BuildContext context) {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+          (route) => false,
+    );
   }
 }

@@ -4,6 +4,7 @@ class User {
   final String? password;
   final String? email;
   final String? displayName;
+  final num? buildingId;
   final dynamic role;
 
   User({
@@ -13,6 +14,7 @@ class User {
     this.email,
     this.displayName,
     this.role,
+    this.buildingId
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class User {
       email: json['email'],
       displayName: json['displayName'],
       role: json['role'],
+      buildingId: json['buildingId']
     );
   }
 
@@ -34,6 +37,7 @@ class User {
       'email': email,
       'displayName': displayName,
       'role': role,
+      'buildingId': buildingId
     };
   }
 }

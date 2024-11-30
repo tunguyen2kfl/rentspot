@@ -1,11 +1,12 @@
 import 'package:http/http.dart' as http;
+import 'package:rent_spot/common/constants.dart';
 import 'package:rent_spot/models/building.dart';
 import 'dart:convert';
 import 'package:rent_spot/stores/building.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class BuildingApi {
-  final String baseUrl = "http://10.0.2.2:8080";
+  final String baseUrl = Constants.apiUrl;
   final BuildingData buildingData;
   final FlutterSecureStorage storage = FlutterSecureStorage(); // Khởi tạo FlutterSecureStorage
 
