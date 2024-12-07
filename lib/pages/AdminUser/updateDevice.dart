@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rent_spot/api/deviceApi.dart';
+import 'package:rent_spot/common/constants.dart';
 import 'package:rent_spot/components/SideBar.dart';
 import 'package:rent_spot/components/CustomAppBar.dart';
 import 'package:rent_spot/models/device.dart';
@@ -8,22 +9,24 @@ import 'package:rent_spot/stores/userData.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
-class CreateDeviceView extends StatefulWidget {
-  const CreateDeviceView({Key? key}) : super(key: key);
+class UpdateDeviceView extends StatefulWidget {
+  final Device device;
+
+  const UpdateDeviceView({Key? key, required this.device}) : super(key: key);
 
   @override
-  _CreateDeviceViewState createState() => _CreateDeviceViewState();
+  _UpdateDeviceViewState createState() => _UpdateDeviceViewState();
 }
 
-class _CreateDeviceViewState extends State<CreateDeviceView> {
+class _UpdateDeviceViewState extends State<UpdateDeviceView> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _deviceNameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final String baseUrl = Constants.apiUrl;
   File? _imageFile;
 
   DeviceApi deviceApi = DeviceApi(UserData());
 
-  // Style input decoration
   static const double _textFieldBorderRadius = 10;
   static const Color _textFieldBorderColor = Color(0xFF3DA9FC);
   static const double _textFieldBorderWidth = 2.0;
@@ -31,19 +34,26 @@ class _CreateDeviceViewState extends State<CreateDeviceView> {
   final InputDecoration customInputDecoration = InputDecoration(
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(_textFieldBorderRadius),
-      borderSide: BorderSide(
-          color: _textFieldBorderColor, width: _textFieldBorderWidth),
+      borderSide: BorderSide(color: _textFieldBorderColor, width: _textFieldBorderWidth),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(_textFieldBorderRadius),
-      borderSide: BorderSide(
-          color: _textFieldBorderColor, width: _textFieldBorderWidth),
+      borderSide: BorderSide(color: _textFieldBorderColor, width: _textFieldBorderWidth),
     ),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(_textFieldBorderRadius),
     ),
     labelStyle: TextStyle(color: Colors.grey),
   );
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Khởi tạo thông tin thiết bị
+    _deviceNameController.text = widget.device.name ?? '';
+    _descriptionController.text = widget.device.description ?? '';
+  }
 
   @override
   void dispose() {
@@ -71,24 +81,25 @@ class _CreateDeviceViewState extends State<CreateDeviceView> {
 
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      Device newDevice = Device(
+      Device updatedDevice = Device(
+        id: widget.device.id, // Giữ nguyên ID để cập nhật
         name: _deviceNameController.text,
         description: _descriptionController.text,
       );
 
       try {
-        Device createdDevice = await deviceApi.create(newDevice, _imageFile);
-        print('Device created: ${createdDevice.name}');
+        Device createdDevice = await deviceApi.update(updatedDevice, _imageFile);
+        print('Device updated: ${createdDevice.name}');
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Device created!')),
+          SnackBar(content: Text('Device updated!')),
         );
 
         Navigator.push(context, MaterialPageRoute(builder: (context) => MainAdminScreen(initialPageIndex: 2)));
       } catch (e) {
-        print('Error creating device: $e');
+        print('Error updating device: $e');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error creating device: $e')),
+          SnackBar(content: Text('Error updating device: $e')),
         );
       }
     }
@@ -98,7 +109,7 @@ class _CreateDeviceViewState extends State<CreateDeviceView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: "Create Device",
+        title: "Update Device",
         onSidebarButtonPressed: () {},
         onBackButtonPressed: () {
           Navigator.pop(context);
@@ -118,7 +129,7 @@ class _CreateDeviceViewState extends State<CreateDeviceView> {
                   child: CircleAvatar(
                     radius: 50,
                     backgroundImage: _imageFile == null
-                        ? null
+                        ? NetworkImage('${baseUrl}${widget.device.image}')
                         : FileImage(_imageFile!),
                     child: _imageFile == null
                         ? Icon(Icons.camera_alt, size: 50, color: _textFieldBorderColor)
@@ -154,7 +165,7 @@ class _CreateDeviceViewState extends State<CreateDeviceView> {
                   minimumSize: Size(0, 50),
                 ),
                 child: const Text(
-                  'Create',
+                  'Update',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,

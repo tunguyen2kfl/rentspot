@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:intl/intl.dart';
-import 'package:syncfusion_flutter_calendar/calendar.dart';
+import 'package:rent_spot/common/constants.dart';
+import 'package:rent_spot/models/Schedule.dart';
+import 'package:rent_spot/models/user.dart';
 
 class UpdateScheduleModal extends StatefulWidget {
-  final Appointment appointment;
-  const UpdateScheduleModal({Key? key, required this.appointment})
+  final Schedule schedule;
+  final List<User> users;
+  const UpdateScheduleModal({Key? key, required this.schedule, required this.users})
       : super(key: key);
 
   @override
@@ -15,7 +18,6 @@ class UpdateScheduleModal extends StatefulWidget {
 class _UpdateScheduleModalState extends State<UpdateScheduleModal> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _summaryController;
-  late TextEditingController _organizerController;
   late List<String> _attendees;
   late TimeOfDay _startTime;
   late TimeOfDay _endTime;
@@ -23,62 +25,60 @@ class _UpdateScheduleModalState extends State<UpdateScheduleModal> {
   late TextEditingController _descriptionController;
   late TextEditingController _attendeeController;
   late DateTime _selectedDate;
+  String? _selectedOrganizerId;
 
   @override
   void initState() {
     super.initState();
-    _summaryController =
-        TextEditingController(text: widget.appointment.subject);
-    _organizerController =
-        TextEditingController(); // Initialize with existing data if available
-    _attendees = []; // Initialize with existing data if available
+    _summaryController = TextEditingController(text: widget.schedule.summary);
+    _attendees = widget.schedule.attendees?.split(',') ?? [];
     _attendeeController = TextEditingController();
-    _startTime = TimeOfDay.fromDateTime(widget.appointment.startTime);
-    _endTime = TimeOfDay.fromDateTime(widget.appointment.endTime);
-    _selectedColor = widget.appointment.color.value;
-    _selectedDate = DateTime.now();
-    _descriptionController =
-        TextEditingController(); // Initialize with existing data if available
+    _startTime = widget.schedule.startTime ?? TimeOfDay.now();
+    _endTime = widget.schedule.endTime ?? TimeOfDay.now();
+    _selectedColor = int.parse(widget.schedule.color?.replaceFirst('#', '0xff') ?? '0xffffffff');
+    _selectedDate = widget.schedule.date ?? DateTime.now();
+    _descriptionController = TextEditingController(); // Thay đổi nếu cần
+    _selectedOrganizerId = widget.schedule.organizer?.toString(); // Khởi tạo ID người tổ chức
   }
 
   void submit() {
     if (_formKey.currentState!.validate()) {
-      // Get values from controllers and other fields
       final String summary = _summaryController.text;
-      final String organizer = _organizerController.text;
+      final String organizer = _selectedOrganizerId ?? ''; // Lấy ID người tổ chức
       final List<String> attendees = _attendees;
       final TimeOfDay startTime = _startTime;
       final TimeOfDay endTime = _endTime;
       final int colors = _selectedColor;
       final String description = _descriptionController.text;
       final DateTime selectedDate = _selectedDate;
+      String colorString = '#${_selectedColor.toRadixString(16).substring(2)}';
 
-
+      // Lưu lịch hoặc thực hiện hành động cần thiết
       print(summary);
       print(organizer);
       print(attendees);
       print(startTime);
       print(endTime);
-      print(colors);
+      print(colorString);
       print(description);
-      print(_selectedDate);
+      print(selectedDate);
 
-      // Navigator.pop(context); // Close the modal
+      // Navigator.pop(context); // Đóng modal
     }
   }
 
   List<Widget> _buildAttendeesSection() {
     return [
       TextFormField(
-        controller: _attendeeController, // Controller for attendee email input
-        decoration: const InputDecoration(hintText: 'Enter email'),
+        controller: _attendeeController,
+        decoration: Constants.customInputDecoration.copyWith(hintText: 'Enter email'),
       ),
       const SizedBox(height: 10.0),
       ElevatedButton(
-        style: ButtonStyle(backgroundColor: MaterialStateProperty.all<Color>(const Color(0xFF3DA9FC))),
+        style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all<Color>(const Color(0xFF3DA9FC))),
         onPressed: () {
-          if (RegExp(
-                  r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+          if (RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
               .hasMatch(_attendeeController.text)) {
             setState(() {
               _attendees.add(_attendeeController.text);
@@ -124,7 +124,7 @@ class _UpdateScheduleModalState extends State<UpdateScheduleModal> {
                 }
               },
               child: InputDecorator(
-                decoration: const InputDecoration(labelText: 'Start Time'),
+                decoration: Constants.customInputDecoration.copyWith(labelText: 'Start Time'),
                 child: Text(_startTime.format(context)),
               ),
             ),
@@ -144,7 +144,7 @@ class _UpdateScheduleModalState extends State<UpdateScheduleModal> {
                 }
               },
               child: InputDecorator(
-                decoration: const InputDecoration(labelText: 'End Time'),
+                decoration: Constants.customInputDecoration.copyWith(labelText: 'End Time'),
                 child: Text(_endTime.format(context)),
               ),
             ),
@@ -191,7 +191,7 @@ class _UpdateScheduleModalState extends State<UpdateScheduleModal> {
           width: 50,
           height: 50,
           decoration: BoxDecoration(
-            color: Color(_selectedColor.isNaN ? 0xFFFFFF :_selectedColor),
+            color: Color(_selectedColor),
             borderRadius: BorderRadius.circular(25),
           ),
         ),
@@ -202,7 +202,6 @@ class _UpdateScheduleModalState extends State<UpdateScheduleModal> {
   @override
   void dispose() {
     _summaryController.dispose();
-    _organizerController.dispose();
     _descriptionController.dispose();
     _attendeeController.dispose();
     super.dispose();
@@ -211,7 +210,6 @@ class _UpdateScheduleModalState extends State<UpdateScheduleModal> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Use Scaffold for full-screen layout
       appBar: AppBar(
         title: const Text('Update Schedule',
             style: TextStyle(
@@ -227,8 +225,7 @@ class _UpdateScheduleModalState extends State<UpdateScheduleModal> {
         actions: <Widget>[
           ElevatedButton(
             style: ButtonStyle(
-                backgroundColor:
-                    MaterialStateProperty.all<Color>(const Color(0xFF3DA9FC))),
+                backgroundColor: MaterialStateProperty.all<Color>(const Color(0xFF3DA9FC))),
             onPressed: submit,
             child: const Text(
               'Add',
@@ -239,8 +236,7 @@ class _UpdateScheduleModalState extends State<UpdateScheduleModal> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          // Add padding to the Form
-          padding: const EdgeInsets.all(16.0), // Adjust padding as needed
+          padding: const EdgeInsets.all(16.0),
           child: Form(
             key: _formKey,
             child: Column(
@@ -249,8 +245,7 @@ class _UpdateScheduleModalState extends State<UpdateScheduleModal> {
               children: <Widget>[
                 TextFormField(
                   controller: _summaryController,
-                  decoration:
-                      const InputDecoration(labelText: 'Schedule Summary'),
+                  decoration: Constants.customInputDecoration.copyWith(labelText: 'Schedule Summary'),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a summary';
@@ -259,16 +254,32 @@ class _UpdateScheduleModalState extends State<UpdateScheduleModal> {
                   },
                 ),
                 const SizedBox(height: 16.0),
-                TextFormField(
-                  controller: _organizerController,
-                  decoration: const InputDecoration(labelText: 'Organizer'),
+                DropdownButtonFormField<String>(
+                  value: _selectedOrganizerId,
+                  decoration: Constants.customInputDecoration.copyWith(labelText: 'Organizer'),
+                  items: widget.users.map((User user) {
+                    return DropdownMenuItem<String>(
+                      value: user.id.toString(),
+                      child: Text(user.displayName ?? ""),
+                    );
+                  }).toList(),
+                  // onChanged: (String? newValue) {
+                  //   setState(() {
+                  //     _selectedOrganizerId = newValue;
+                  //   });
+                  // },
+                  onChanged: null,
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Please select an organizer';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16.0),
-                // Attendees Section
                 const Text('Attendees', textAlign: TextAlign.left),
                 ..._buildAttendeesSection(),
                 const SizedBox(height: 16.0),
-                //DatePicker
                 GestureDetector(
                   onTap: () async {
                     final DateTime? pickedDate = await showDatePicker(
@@ -284,21 +295,19 @@ class _UpdateScheduleModalState extends State<UpdateScheduleModal> {
                     }
                   },
                   child: InputDecorator(
-                    decoration: const InputDecoration(labelText: 'Date'),
-                    child: Text(DateFormat('yyyy-MM-dd').format(_selectedDate)), // Format date
+                    decoration: Constants.customInputDecoration.copyWith(labelText: 'Date'),
+                    child: Text(DateFormat('yyyy-MM-dd').format(_selectedDate)),
                   ),
                 ),
                 const SizedBox(height: 16.0),
-                // Start and End Time Pickers
                 ..._buildTimePickers(),
                 const SizedBox(height: 16.0),
-                // Color Picker
                 ..._buildColorPicker(),
                 const SizedBox(height: 16.0),
                 TextFormField(
                   controller: _descriptionController,
-                  decoration: const InputDecoration(labelText: 'Description'),
-                  maxLines: 3, // Allow multiple lines for description
+                  decoration: Constants.customInputDecoration.copyWith(labelText: 'Description'),
+                  maxLines: 3,
                 ),
               ],
             ),

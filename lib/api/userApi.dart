@@ -34,6 +34,26 @@ class UserApi {
     }
   }
 
+  Future<bool> register(String username, String password, String email,
+      String displayName) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/users/register'),
+      body: jsonEncode({
+        'username': username,
+        'password': password,
+        'email': email,
+        'displayName': displayName
+      }),
+      headers: {'Content-Type': 'application/json'},
+    );
+    print(response.statusCode);
+    if (response.statusCode == 201) {
+      return true;
+    } else {
+      throw Exception('Failed to register: ${response.statusCode}');
+    }
+  }
+
   // Hàm để lấy thông tin người dùng
   final FlutterSecureStorage storage = FlutterSecureStorage();
 
@@ -62,10 +82,50 @@ class UserApi {
     }
   }
 
+  Future<List<User>> getAllUserInBuilding(BuildContext context) async {
+    final accessToken = await storage.read(key: 'accessToken');
+    final buildingId = await storage.read(key: 'buildingId');
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/users/allSelect?buildingId=$buildingId'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+      );
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        List<User> users =
+            data.map((userJson) => User.fromJson(userJson)).toList();
+        return users;
+      } else {
+        showErrorSnackbar(
+            context, 'Failed to get users: ${response.statusCode}');
+        return [];
+      }
+    } catch (error) {
+      showErrorSnackbar(context, 'Error occurred: $error');
+      return [];
+    }
+  }
+
+// Hàm hiển thị snackbar thông báo lỗi
+  void showErrorSnackbar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: Duration(seconds: 3),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
   void _navigateToLogin(BuildContext context) {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => LoginScreen()),
-          (route) => false,
+      (route) => false,
     );
   }
 }

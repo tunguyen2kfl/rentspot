@@ -5,7 +5,7 @@ import 'package:rent_spot/common/constants.dart';
 import 'package:rent_spot/pages/AdminUser/mainAdminScreen.dart';
 import 'package:rent_spot/pages/NoRole/welcome.dart';
 import 'package:rent_spot/pages/UserView/mainScreen.dart';
-import 'package:rent_spot/pages/register.dart';
+import 'package:rent_spot/pages/login.dart';
 import 'package:rent_spot/stores/userData.dart';
 
 void main() {
@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: LoginScreen(),
+      home: RegisterScreen(),
     );
   }
 }
@@ -25,28 +25,59 @@ const double _textFieldBorderRadius = 10;
 const Color _textFieldBorderColor = Color(0xFF3DA9FC);
 const double _textFieldBorderWidth = 2.0;
 
-class LoginScreen extends StatefulWidget {
+// // Reusable input decoration
+// final InputDecoration customInputDecoration = InputDecoration(
+//   enabledBorder: OutlineInputBorder(
+//     borderRadius: BorderRadius.circular(_textFieldBorderRadius),
+//     borderSide: BorderSide(color: _textFieldBorderColor, width: _textFieldBorderWidth),
+//   ),
+//   focusedBorder: OutlineInputBorder(
+//     borderRadius: BorderRadius.circular(_textFieldBorderRadius),
+//     borderSide: BorderSide(color: _textFieldBorderColor, width: _textFieldBorderWidth),
+//   ),
+//   border: OutlineInputBorder(
+//     borderRadius: BorderRadius.circular(_textFieldBorderRadius),
+//   ),
+//   labelStyle: TextStyle(color: _textFieldBorderColor),
+// );
+
+class RegisterScreen extends StatefulWidget {
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  _RegisterScreenState createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   // Controllers for text fields
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _rePasswordController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _displayNameController = TextEditingController();
   bool _isLoading = false;
 
   bool _validateInputs() {
     if (_usernameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Username cannot be empty')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Username cannot be empty')));
       return false;
     }
     if (_passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Password cannot be empty')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Password cannot be empty')));
+      return false;
+    }
+    if (_rePasswordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Re-enter your password')));
+      return false;
+    }
+    if (_passwordController.text != _rePasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Passwords do not match')));
+      return false;
+    }
+    if (_emailController.text.isEmpty || !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(_emailController.text)) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Invalid email')));
+      return false;
+    }
+    if (_displayNameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Display name cannot be empty')));
       return false;
     }
     return true;
@@ -57,8 +88,8 @@ class _LoginScreenState extends State<LoginScreen> {
     final userData = Provider.of<UserData>(context);
     final userApi = UserApi(userData);
 
-    void login() async {
-      print("LOGIN");
+    void register() async {
+      print("REGISTER");
       setState(() {
         _isLoading = true;
       });
@@ -71,20 +102,21 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       try {
-        final res = await userApi.login(_usernameController.text, _passwordController.text);
-        if (res.role == null) {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => WelcomeScreen()));
-        } else if (res.role == 'user') {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MainScreen()));
-        } else if (res.role == 'building-admin') {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MainAdminScreen()));
-        } else {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => WelcomeScreen()));
+        final success = await userApi.register(
+          _usernameController.text,
+          _passwordController.text,
+          _emailController.text,
+          _displayNameController.text,
+        );
+        if (success != null && success) {
+          // Assuming successful registration
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Register success!')));
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginScreen()));
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
       } finally {
-        if (mounted) { // Kiểm tra xem widget còn trong cây không
+        if (mounted) {
           setState(() {
             _isLoading = false;
           });
@@ -110,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     fit: BoxFit.contain,
                   ),
                 ),
-                // Input User Name
+                // Input Username
                 Padding(
                   padding: const EdgeInsets.only(bottom: 20),
                   child: TextField(
@@ -118,23 +150,48 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: Constants.customInputDecoration.copyWith(labelText: 'Username'),
                   ),
                 ),
+                // Input Email
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: TextField(
+                    controller: _emailController,
+                    decoration: Constants.customInputDecoration.copyWith(labelText: 'Email'),
+                  ),
+                ),
+                // Input Display Name
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: TextField(
+                    controller: _displayNameController,
+                    decoration: Constants.customInputDecoration.copyWith(labelText: 'Display Name'),
+                  ),
+                ),
                 // Input Password
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 70),
+                  padding: const EdgeInsets.only(bottom: 20),
                   child: TextField(
                     controller: _passwordController,
                     obscureText: true,
                     decoration: Constants.customInputDecoration.copyWith(labelText: 'Password'),
                   ),
                 ),
-                // Login Button
+                // Input Re-Password
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 70),
+                  child: TextField(
+                    controller: _rePasswordController,
+                    obscureText: true,
+                    decoration: Constants.customInputDecoration.copyWith(labelText: 'Re-enter Password'),
+                  ),
+                ),
+                // Register Button
                 Container(
                   width: double.infinity,
                   margin: const EdgeInsets.only(bottom: 10),
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : () {
-                      // Action for Login
-                      login();
+                      // Action for Register
+                      register();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _textFieldBorderColor,
@@ -153,7 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     )
                         : const Text(
-                      'Login',
+                      'Register',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 18,
@@ -161,14 +218,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                // Register Button
+                // Back to Login Button
                 Container(
                   width: double.infinity,
                   margin: const EdgeInsets.only(bottom: 10),
                   child: ElevatedButton(
                     onPressed: () {
-                      // Action for Register
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => RegisterScreen()));
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginScreen()));
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
@@ -179,7 +235,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       minimumSize: Size(0, 50),
                     ),
                     child: const Text(
-                      'Register',
+                      'Back to Login',
                       style: TextStyle(
                         color: _textFieldBorderColor,
                         fontSize: 18,

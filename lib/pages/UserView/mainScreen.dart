@@ -1,23 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:rent_spot/api/userApi.dart';
+import 'package:rent_spot/components/CustomAppBar.dart';
+import 'package:rent_spot/components/SideBar.dart';
+import 'package:rent_spot/models/user.dart';
 import 'package:rent_spot/pages/UserView/schedule.dart';
+import 'package:rent_spot/stores/userData.dart';
 import 'home.dart';
 import 'profile.dart';
 import 'schedule.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final int initialPageIndex;
+  const MainScreen({super.key, this.initialPageIndex = 0});
 
   @override
   _MainScreenState createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0; // Default to Home page
+  int _selectedIndex = 0;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final UserApi userApi = UserApi(UserData());
 
   final List<Widget> _pages = [
     SchedulesView(),
     ProfilePage(),
   ];
+
+  final List<String> _titles = ['Schedule', 'Profile'];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -26,8 +36,33 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialPageIndex;
+    _getUserInfo();
+  }
+
+  Future<void> _getUserInfo() async {
+    try {
+      User user = await userApi.getUserInfo(context);
+      print("User Info: ${user.toString()}");
+    } catch (e) {
+      print("Error getting user info: $e");
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
+      appBar: CustomAppBar(
+          title: _titles[_selectedIndex],
+          onSidebarButtonPressed: () {
+            if (_scaffoldKey.currentState != null) {
+              _scaffoldKey.currentState!.openDrawer(); // Mở sidebar
+            }
+          }),
+      drawer: const SideMenu(),
       body: _pages[_selectedIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(

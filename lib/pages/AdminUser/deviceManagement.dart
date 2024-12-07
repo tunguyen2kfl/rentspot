@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:rent_spot/api/deviceApi.dart';
 import 'package:rent_spot/common/constants.dart';
 import 'package:rent_spot/models/device.dart';
-import 'package:rent_spot/stores/userData.dart'; // Import UserData
-// Import UpdateDeviceView
+import 'package:rent_spot/pages/AdminUser/updateDevice.dart';
+import 'package:rent_spot/stores/userData.dart';
+
 
 class DeviceManagementView extends StatefulWidget {
   @override
@@ -104,7 +105,6 @@ class _DeviceManagementViewState extends State<DeviceManagementView> {
                     padding: const EdgeInsets.all(16.0),
                     child: Row(
                       children: [
-                        // Hình ảnh thiết bị
                         CircleAvatar(
                           radius: 30,
                           backgroundImage: device.image != null && device.image!.isNotEmpty
@@ -125,18 +125,17 @@ class _DeviceManagementViewState extends State<DeviceManagementView> {
                             ],
                           ),
                         ),
-                        // Nút chỉnh sửa và xóa
                         Row(
                           children: [
                             IconButton(
                               icon: const Icon(Icons.edit, color: Colors.blue),
                               onPressed: () {
-                                // Navigator.push(
-                                //   context,
-                                //   MaterialPageRoute(
-                                //     builder: (context) => UpdateDeviceView(device: device),
-                                //   ),
-                                // );
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => UpdateDeviceView(device: device),
+                                  ),
+                                );
                               },
                             ),
                             IconButton(

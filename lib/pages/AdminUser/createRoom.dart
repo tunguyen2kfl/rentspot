@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:rent_spot/api/deviceApi.dart';
 import 'package:rent_spot/api/roomApi.dart';
+import 'package:rent_spot/common/constants.dart';
 import 'package:rent_spot/components/SideBar.dart';
 import 'package:rent_spot/components/CustomAppBar.dart';
+import 'package:rent_spot/models/device.dart';
 import 'package:rent_spot/models/room.dart';
 import 'package:rent_spot/pages/AdminUser/mainAdminScreen.dart';
-import 'package:rent_spot/pages/AdminUser/roomMgmt.dart';
 import 'package:rent_spot/stores/userData.dart';
 
 class CreateRoomView extends StatefulWidget {
@@ -16,33 +18,17 @@ class CreateRoomView extends StatefulWidget {
 
 class _CreateRoomViewState extends State<CreateRoomView> {
   final _formKey = GlobalKey<FormState>();
+  final String baseUrl = Constants.apiUrl;
   final TextEditingController _roomNameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _statusController =
-      TextEditingController(); // Controller cho Status
+  final TextEditingController _statusController = TextEditingController();
   bool _isOpen = false;
-  List<Device> _availableDevices = [
-    Device(
-        id: '1',
-        name: 'Print machine',
-        imageUrl:
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJFeEz4aT_A9B4YpiBAU9R3W8Ircf3OwABaw&s'),
-    Device(
-        id: '2',
-        name: 'Projector',
-        imageUrl:
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJFeEz4aT_A9B4YpiBAU9R3W8Ircf3OwABaw&s'),
-    Device(
-        id: '3',
-        name: 'Monitor',
-        imageUrl:
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJFeEz4aT_A9B4YpiBAU9R3W8Ircf3OwABaw&s'),
-  ];
+  List<Device> _availableDevices = [];
   List<Device> _selectedDevices = [];
 
   RoomApi roomApi = RoomApi(UserData());
+  DeviceApi deviceApi = DeviceApi(UserData());
 
-  // Style input decoration
   static const double _textFieldBorderRadius = 10;
   static const Color _textFieldBorderColor = Color(0xFF3DA9FC);
   static const double _textFieldBorderWidth = 2.0;
@@ -50,13 +36,11 @@ class _CreateRoomViewState extends State<CreateRoomView> {
   final InputDecoration customInputDecoration = InputDecoration(
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(_textFieldBorderRadius),
-      borderSide: BorderSide(
-          color: _textFieldBorderColor, width: _textFieldBorderWidth),
+      borderSide: BorderSide(color: _textFieldBorderColor, width: _textFieldBorderWidth),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(_textFieldBorderRadius),
-      borderSide: BorderSide(
-          color: _textFieldBorderColor, width: _textFieldBorderWidth),
+      borderSide: BorderSide(color: _textFieldBorderColor, width: _textFieldBorderWidth),
     ),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(_textFieldBorderRadius),
@@ -65,10 +49,27 @@ class _CreateRoomViewState extends State<CreateRoomView> {
   );
 
   @override
+  void initState() {
+    super.initState();
+    _fetchAvailableDevices();
+  }
+
+  Future<void> _fetchAvailableDevices() async {
+    try {
+      final devices = await deviceApi.getAll();
+      setState(() {
+        _availableDevices = devices;
+      });
+    } catch (e) {
+      print('Error fetching devices: $e');
+    }
+  }
+
+  @override
   void dispose() {
     _roomNameController.dispose();
     _descriptionController.dispose();
-    _statusController.dispose(); // Dispose status controller
+    _statusController.dispose();
     super.dispose();
   }
 
@@ -96,9 +97,13 @@ class _CreateRoomViewState extends State<CreateRoomView> {
                   final device = _availableDevices[index];
                   return ListTile(
                     leading: CircleAvatar(
-                      backgroundImage: NetworkImage(device.imageUrl),
+                      backgroundImage:
+                      device.image != null && device.image!.isNotEmpty
+                          ? NetworkImage('${baseUrl}${device.image}')
+                          : AssetImage('assets/images/default_device.png')
+                      as ImageProvider,
                     ),
-                    title: Text(device.name),
+                    title: Text(device.name ?? ''),
                     trailing: Checkbox(
                       value: _selectedDevices.contains(device),
                       onChanged: (value) {
@@ -119,7 +124,6 @@ class _CreateRoomViewState extends State<CreateRoomView> {
 
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      // Tạo một Room từ thông tin đã nhập
       String selectedDeviceIds = _selectedDevices.map((d) => d.id).join(',');
       Room newRoom = Room(
         name: _roomNameController.text,
@@ -130,22 +134,16 @@ class _CreateRoomViewState extends State<CreateRoomView> {
       );
 
       try {
-        // Gọi API để tạo Room
-        Room createdRoom = await roomApi.create(newRoom);
-        print('Room created: ${createdRoom.name}');
-
+        await roomApi.create(newRoom);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Room created!')),
         );
-
-        // Chuyển hướng về màn hình RoomManagement
         Navigator.push(context, MaterialPageRoute(builder: (context) => MainAdminScreen(initialPageIndex: 1)));
       } catch (e) {
         print('Error creating room: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error creating room: $e')),
         );
-        // Hiển thị thông báo lỗi nếu cần
       }
     }
   }
@@ -162,7 +160,6 @@ class _CreateRoomViewState extends State<CreateRoomView> {
       ),
       drawer: const SideMenu(),
       body: SingleChildScrollView(
-        // Bọc trong SingleChildScrollView
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
@@ -171,8 +168,7 @@ class _CreateRoomViewState extends State<CreateRoomView> {
             children: [
               TextFormField(
                 controller: _roomNameController,
-                decoration:
-                    customInputDecoration.copyWith(labelText: 'Room Name'),
+                decoration: customInputDecoration.copyWith(labelText: 'Room Name'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'This field cannot be empty';
@@ -197,7 +193,7 @@ class _CreateRoomViewState extends State<CreateRoomView> {
               ),
               const SizedBox(height: 16.0),
               TextFormField(
-                controller: _statusController, // Trường Status
+                controller: _statusController,
                 decoration: customInputDecoration.copyWith(labelText: 'Status'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -225,9 +221,14 @@ class _CreateRoomViewState extends State<CreateRoomView> {
                         children: _selectedDevices.map((device) {
                           return Chip(
                             avatar: CircleAvatar(
-                              backgroundImage: NetworkImage(device.imageUrl),
+                              backgroundImage: device.image != null &&
+                                  device.image!.isNotEmpty
+                                  ? NetworkImage('${baseUrl}${device.image}')
+                                  : AssetImage(
+                                  'assets/images/default_device.png')
+                              as ImageProvider,
                             ),
-                            label: Text(device.name),
+                            label: Text(device.name ?? ''),
                             onDeleted: () {
                               _toggleDeviceSelection(device);
                             },
@@ -249,8 +250,7 @@ class _CreateRoomViewState extends State<CreateRoomView> {
               const SizedBox(height: 16.0),
               TextFormField(
                 controller: _descriptionController,
-                decoration:
-                    customInputDecoration.copyWith(labelText: 'Description'),
+                decoration: customInputDecoration.copyWith(labelText: 'Description'),
                 maxLines: 3,
               ),
               const SizedBox(height: 16.0),
@@ -277,12 +277,4 @@ class _CreateRoomViewState extends State<CreateRoomView> {
       ),
     );
   }
-}
-
-class Device {
-  final String id;
-  final String name;
-  final String imageUrl;
-
-  Device({required this.id, required this.name, required this.imageUrl});
 }

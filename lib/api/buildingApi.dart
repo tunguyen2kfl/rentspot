@@ -8,86 +8,104 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class BuildingApi {
   final String baseUrl = Constants.apiUrl;
   final BuildingData buildingData;
-  final FlutterSecureStorage storage = FlutterSecureStorage(); // Khởi tạo FlutterSecureStorage
+  final FlutterSecureStorage storage = FlutterSecureStorage();
 
   BuildingApi(this.buildingData);
 
-  // Lấy accessToken từ FlutterSecureStorage
   Future<String?> _getAccessToken() async {
-    return await storage.read(key: 'accessToken'); // Lấy accessToken
+    return await storage.read(key: 'accessToken');
   }
 
-  // Lấy thông tin tòa nhà theo ID
   Future<bool> fetchBuildingById(int id) async {
-    final accessToken = await _getAccessToken(); // Lấy accessToken
+    final accessToken = await _getAccessToken();
     final response = await http.get(
       Uri.parse('$baseUrl/api/buildings/$id'),
       headers: {
-        'Authorization': 'Bearer $accessToken', // Thêm accessToken vào header
+        'Authorization': 'Bearer $accessToken',
       },
     );
 
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body);
       final building = Building.fromJson(json);
-      await buildingData.setBuildingInfo(building); // Nạp vào store
-      return true; // Trả về true khi thành công
+      await buildingData.setBuildingInfo(building);
+      return true;
     } else {
-      return false; // Trả về false khi thất bại
+      return false;
     }
   }
 
-  // Thêm tòa nhà mới
   Future<bool> addBuilding(Building building) async {
-    final accessToken = await _getAccessToken(); // Lấy accessToken
+    final accessToken = await _getAccessToken();
     print(accessToken);
     final response = await http.post(
       Uri.parse('$baseUrl/api/buildings'),
       body: jsonEncode(building.toJson()),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $accessToken', // Thêm accessToken vào header
+        'Authorization': 'Bearer $accessToken',
       },
     );
 
     if (response.statusCode == 201) {
       final json = jsonDecode(response.body);
-      final newBuilding = Building.fromJson(json['building']); // Lấy thông tin tòa nhà từ phản hồi
-      await buildingData.setBuildingInfo(newBuilding); // Nạp vào store
-      return true; // Trả về true khi thành công
+      final newBuilding = Building.fromJson(json['building']);
+      await buildingData.setBuildingInfo(newBuilding);
+      return true;
     } else {
-      return false; // Trả về false khi thất bại
+      return false;
     }
   }
 
-  // Cập nhật tòa nhà
   Future<bool> updateBuilding(int id, Building building) async {
-    final accessToken = await _getAccessToken(); // Lấy accessToken
+    final accessToken = await _getAccessToken();
     final response = await http.put(
       Uri.parse('$baseUrl/api/buildings/$id'),
       body: jsonEncode(building.toJson()),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $accessToken', // Thêm accessToken vào header
+        'Authorization': 'Bearer $accessToken',
       },
     );
 
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body);
-      final updatedBuilding = Building.fromJson(json['building']); // Cập nhật thông tin tòa nhà từ phản hồi
-      await buildingData.setBuildingInfo(updatedBuilding); // Nạp vào store
-      return true; // Trả về true khi thành công
+      final updatedBuilding = Building.fromJson(json['building']);
+      await buildingData.setBuildingInfo(updatedBuilding);
+      return true;
     } else {
-      return false; // Trả về false khi thất bại
+      return false;
+    }
+  }
+
+  Future<Building> joinBuilding(String inviteCode) async {
+    final accessToken = await _getAccessToken();
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/buildings/join'),
+      body: jsonEncode({'inviteCode': inviteCode}),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      final updatedBuilding = Building.fromJson(json['building']);
+      await buildingData.setBuildingInfo(updatedBuilding);
+      return updatedBuilding;
+    } else {
+      throw Exception('Failed to join building');
     }
   }
 
   Future<void> deleteBuilding(int id) async {
-    final accessToken = await _getAccessToken(); // Lấy accessToken
+    final accessToken = await _getAccessToken();
     final response = await http.delete(
       Uri.parse('$baseUrl/api/buildings/$id'),
       headers: {
-        'Authorization': 'Bearer $accessToken', // Thêm accessToken vào header
+        'Authorization': 'Bearer $accessToken',
       },
     );
 

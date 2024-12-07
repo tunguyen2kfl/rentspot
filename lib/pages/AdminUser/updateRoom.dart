@@ -72,11 +72,16 @@ class _UpdateRoomViewState extends State<UpdateRoomView> {
         print('input');
         print(widget.room.devices?.split(','));
         print(devices.length);
+
         _selectedDevices = (widget.room.devices?.split(',') ?? []).map((id) {
           print(id);
-          return devices.firstWhere((device) => device.id == int.parse(id),
-              orElse: () => Device(id: null, name: 'Unknown', image: ''));
+          return devices.firstWhere(
+                (device) => device.id == int.parse(id),
+            orElse: () => Device(id: -1, name: 'Unknown', image: ''), // Temporary invalid device
+          );
         }).toList();
+
+        _selectedDevices = _selectedDevices.where((device) => device.id != -1).toList();
       });
     } catch (e) {
       print('Error fetching devices: $e');

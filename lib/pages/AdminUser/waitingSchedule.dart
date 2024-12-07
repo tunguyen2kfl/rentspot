@@ -8,23 +8,23 @@ class WaitingScheduleView extends StatelessWidget {
       id: 1,
       summary: 'Meeting with John',
       date: DateTime.now(),
-      resourceId: 1,
+      roomId: 1,
       status: 'confirmed',
       color: '#007bff', // Blue color
-      startTime: DateTime.now(),
-      endTime: DateTime.now().add(Duration(hours: 2)),
-      organizer: "a@gmail.com"
+      startTime: TimeOfDay(hour: DateTime.now().hour, minute: DateTime.now().minute),
+      endTime: TimeOfDay(hour: DateTime.now().add(Duration(hours: 2)).hour, minute: DateTime.now().add(Duration(hours: 2)).minute),
+      attendees: "a@gmail.com",
     ),
     Schedule(
       id: 2,
       summary: 'Team Building',
       date: DateTime.now(),
-      resourceId: 2,
+      roomId: 2,
       status: 'pending',
       color: '#28a745', // Green color
-      startTime: DateTime.now().add(Duration(hours: 1)),
-      endTime: DateTime.now().add(Duration(hours: 3)),
-      organizer: "b@gmail.com"
+      startTime: TimeOfDay(hour: DateTime.now().add(Duration(hours: 1)).hour, minute: DateTime.now().add(Duration(hours: 1)).minute),
+      endTime: TimeOfDay(hour: DateTime.now().add(Duration(hours: 3)).hour, minute: DateTime.now().add(Duration(hours: 3)).minute),
+      attendees: "b@gmail.com",
     ),
   ];
 
@@ -49,13 +49,13 @@ class WaitingScheduleView extends StatelessWidget {
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     const SizedBox(height: 8),
-                    Text('Room: P.${schedule.resourceId}'),
+                    Text('Room: P.${schedule.roomId}'),
                     const SizedBox(height: 4),
                     Text(
-                      'Time: ${DateFormat.jm().format(schedule.startTime)} - ${DateFormat.jm().format(schedule.endTime)} | ${DateFormat.yMd().format(schedule.date)}',
+                      'Time: ${DateFormat.jm().format(DateTime(0, 0, 0, schedule.startTime!.hour, schedule.startTime!.minute))} - ${DateFormat.jm().format(DateTime(0, 0, 0, schedule.endTime!.hour, schedule.endTime!.minute))} | ${DateFormat.yMd().format(schedule.date!)}',
                     ),
                     const SizedBox(height: 4),
-                    Text('Organizer: ${schedule.organizer}', style: TextStyle(color: Colors.teal, fontWeight: FontWeight.bold),),
+                    Text('Organizer: ${schedule.attendees}', style: TextStyle(color: Colors.teal, fontWeight: FontWeight.bold),),
                     const SizedBox(height: 10),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
