@@ -3,7 +3,9 @@ import 'package:rent_spot/api/userApi.dart';
 import 'package:rent_spot/components/CustomAppBar.dart';
 import 'package:rent_spot/components/SideBar.dart';
 import 'package:rent_spot/models/user.dart';
+import 'package:rent_spot/pages/UserView/createSchedule.dart';
 import 'package:rent_spot/pages/UserView/schedule.dart';
+import 'package:rent_spot/pages/UserView/scheduleManager.dart';
 import 'package:rent_spot/stores/userData.dart';
 import 'home.dart';
 import 'profile.dart';
@@ -24,10 +26,10 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _pages = [
     SchedulesView(),
-    ProfilePage(),
+    MySchedulesView(),
   ];
 
-  final List<String> _titles = ['Schedule', 'Profile'];
+  final List<String> _titles = ['Schedule', 'Schedule Manager'];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -79,20 +81,35 @@ class _MainScreenState extends State<MainScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              buildNavBarItem(Icons.home, 'Home', 0),
+              buildNavBarItem(Icons.home, 'Schedules', 0),
               const SizedBox(width: 20),
-              buildNavBarItem(Icons.person, 'Profile', 1),
+              buildNavBarItem(Icons.calendar_month, 'Manager', 1),
             ],
           ),
         ),
       ),
       // Centered Add button
-      floatingActionButton: const Padding(
+      floatingActionButton: Padding(
         padding: EdgeInsets.only(bottom: 0), // Lower the FAB
         child: ClipOval(
           child: Material(
             color: Color(0xFF3DA9FC),
             child: InkWell(
+              onTap: () {
+                switch (_selectedIndex) {
+                  case 0:
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => CreateSchedulePage()));
+                    break;
+                  case 1:
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => CreateSchedulePage()));
+                    break;
+                  case 2:
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => CreateSchedulePage()));
+                    break;
+                  default:
+                    break;
+                }
+              },
               child: SizedBox(
                 width: 56,
                 height: 56,

@@ -77,10 +77,10 @@ class _JoinBuildingViewState extends State<JoinBuildingView> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                margin: const EdgeInsets.only(bottom: 20),
+                margin: const EdgeInsets.only(bottom: 40),
                 child: Image.asset(
-                  'assets/images/Logo.png',
-                  height: 150,
+                  'assets/images/LogoOnly.png',
+                  height: 220,
                   width: 220,
                   fit: BoxFit.contain,
                 ),

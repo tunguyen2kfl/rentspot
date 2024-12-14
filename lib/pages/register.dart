@@ -134,7 +134,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 // Logo
                 Container(
-                  margin: const EdgeInsets.only(bottom: 60),
+                  margin: const EdgeInsets.only(bottom: 20),
                   child: Image.asset(
                     'assets/images/Logo.png', // Replace with your logo path
                     height: 150,

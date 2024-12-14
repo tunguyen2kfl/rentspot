@@ -16,11 +16,14 @@ class SplashScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10), // Space between logo and loading indicator
-            LinearProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3DA9FC)),
-              backgroundColor: Colors.white,// Change color as needed
-              minHeight: 5,// Thickness of the progress indicato
-              borderRadius: BorderRadius.circular(6)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32.0), // Add horizontal padding
+              child: LinearProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3DA9FC)),
+                backgroundColor: Colors.white, // Change color as needed
+                minHeight: 5, // Thickness of the progress indicator
+                borderRadius: BorderRadius.circular(6),
+              ),
             ),
           ],
         ),

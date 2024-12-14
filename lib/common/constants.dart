@@ -24,6 +24,6 @@ class Constants {
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(_textFieldBorderRadius),
     ),
-    labelStyle: TextStyle(color: Colors.black, fontWeight: FontWeight.w500),
+    labelStyle: TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.w500),
   );
 }

@@ -87,7 +87,7 @@ class _CreateBuildingViewState extends State<CreateBuildingView> {
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
-        _isLoading = true; // Đặt trạng thái loading
+        _isLoading = true;
       });
 
       // Tạo đối tượng Building
@@ -101,14 +101,11 @@ class _CreateBuildingViewState extends State<CreateBuildingView> {
       );
 
 
-      // Gọi API để thêm tòa nhà
       bool success = await buildingApi.addBuilding(newBuilding);
 
-      // Hiển thị thông báo
       if (success) {
         _showSnackBar('Building created successfully!');
 
-        // Gọi API để lấy thông tin người dùng
         try {
           User user = await userApi.getUserInfo(context);
           print("User info obtained: ${user.username}"); // Kiểm tra thông tin người dùng
@@ -140,7 +137,7 @@ class _CreateBuildingViewState extends State<CreateBuildingView> {
 
   @override
   Widget build(BuildContext context) {
-    _generateInviteCode(); // Sinh mã mời mỗi khi build, có thể cần điều chỉnh
+    _generateInviteCode();
     return Scaffold(
       key: _scaffoldKey,
       appBar: CustomAppBar(
@@ -166,7 +163,7 @@ class _CreateBuildingViewState extends State<CreateBuildingView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 32.0),
+                    const SizedBox(height: 16.0),
                     TextFormField(
                       controller: _buildingNameController,
                       decoration: customInputDecoration.copyWith(

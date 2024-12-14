@@ -15,6 +15,7 @@ class Schedule {
   final int? createdBy;
   final int? updatedBy;
   final bool? isDeleted;
+  final String? description;
 
   Schedule({
     this.id,
@@ -31,6 +32,7 @@ class Schedule {
     this.createdBy,
     this.updatedBy,
     this.isDeleted,
+    this.description,
   });
 
   factory Schedule.fromJson(Map<String, dynamic> json) {
@@ -42,13 +44,14 @@ class Schedule {
       buildingId: json['buildingId'],
       status: json['status'],
       color: json['color'],
-      startTime: json['startTime'] != null ? TimeOfDay.fromDateTime(DateTime.parse(json['startTime'])) : null,
-      endTime: json['endTime'] != null ? TimeOfDay.fromDateTime(DateTime.parse(json['endTime'])) : null,
+      startTime: json['startTime'] != null ? _convertToTimeOfDay(json['startTime']) : null,
+      endTime: json['endTime'] != null ? _convertToTimeOfDay(json['endTime']) : null,
       attendees: json['attendees'],
       organizer: json['organizer'],
       createdBy: json['createdBy'],
       updatedBy: json['updatedBy'],
       isDeleted: json['isDeleted'],
+      description: json['description'],
     );
   }
 
@@ -61,13 +64,30 @@ class Schedule {
       'buildingId': buildingId,
       'status': status,
       'color': color,
-      'startTime': startTime != null ? DateTime(0, 0, 0, startTime!.hour, startTime!.minute).toIso8601String() : null,
-      'endTime': endTime != null ? DateTime(0, 0, 0, endTime!.hour, endTime!.minute).toIso8601String() : null,
+      'startTime': startTime != null ? _convertToTimeString(startTime!) : null,
+      'endTime': endTime != null ? _convertToTimeString(endTime!) : null,
       'attendees': attendees,
       'organizer': organizer,
       'createdBy': createdBy,
       'updatedBy': updatedBy,
       'isDeleted': isDeleted,
+      'description': description,
     };
+  }
+
+  static TimeOfDay _convertToTimeOfDay(String time) {
+    final parts = time.split(':');
+
+    if (parts.length < 2 || parts.length > 3) {
+      throw FormatException('Invalid time format: $time');
+    }
+    final hour = int.parse(parts[0]);
+    final minute = int.parse(parts[1]);
+
+    return TimeOfDay(hour: hour, minute: minute);
+  }
+
+  static String _convertToTimeString(TimeOfDay time) {
+    return '${time.hour}:${time.minute}';
   }
 }

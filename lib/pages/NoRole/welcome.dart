@@ -26,17 +26,17 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                 ),
                 // Title
-                Text(
+                const Text(
                   'Welcome to RentSpot',
-                  style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
                 ),
                 // Content
-                SizedBox(height: 20), // Add spacing between title and content
-                Text(
+                const SizedBox(height: 5), // Add spacing between title and content
+                const Text(
                   'Please take your action to start!',
-                  style: TextStyle(fontSize: 16),
+                  style: TextStyle(fontSize: 18),
                 ),
-                SizedBox(height: MediaQuery.of(context).size.height * 0.25), // Adjust spacing to push buttons to the bottom
+                SizedBox(height: MediaQuery.of(context).size.height * 0.15), // Adjust spacing to push buttons to the bottom
                 // Create Building Button
                 Container(
                   width: double.infinity,

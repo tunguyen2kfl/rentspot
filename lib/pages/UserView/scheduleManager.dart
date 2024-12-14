@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:rent_spot/api/roomApi.dart';
 import 'package:rent_spot/api/scheduleApi.dart';
 import 'package:rent_spot/api/userApi.dart';
+import 'package:rent_spot/components/UpdateScheduleModal.dart';
 import 'package:rent_spot/models/Schedule.dart';
+import 'package:rent_spot/models/room.dart';
 import 'package:rent_spot/models/user.dart';
 import 'package:rent_spot/stores/userData.dart';
 
-class WaitingScheduleView extends StatefulWidget {
+class MySchedulesView extends StatefulWidget {
   @override
-  _WaitingScheduleViewState createState() => _WaitingScheduleViewState();
+  _MySchedulesViewState createState() => _MySchedulesViewState();
 }
 
-class _WaitingScheduleViewState extends State<WaitingScheduleView> {
+class _MySchedulesViewState extends State<MySchedulesView> {
   late ScheduleApi scheduleApi;
   late UserApi userApi;
   late Future<List<Schedule>> _schedulesFuture;
-  late Future<List<User>> _usersFuture;
   List<User> _users = [];
+  List<Room> _rooms = [];
 
   @override
   void initState() {
@@ -25,12 +28,13 @@ class _WaitingScheduleViewState extends State<WaitingScheduleView> {
     scheduleApi = ScheduleApi(userData);
     userApi = UserApi(userData);
     _fetchUsers();
-    _loadWaitingSchedules();
+    _fetchRooms();
+    _loadMySchedules();
   }
 
-  void _loadWaitingSchedules() {
+  void _loadMySchedules() {
     setState(() {
-      _schedulesFuture = scheduleApi.getWaitingSchedules();
+      _schedulesFuture = scheduleApi.getMySchedules();
     });
   }
 
@@ -43,28 +47,44 @@ class _WaitingScheduleViewState extends State<WaitingScheduleView> {
     }
   }
 
-  Future<void> _passSchedule(String scheduleId) async {
+  Future<void> _fetchRooms() async {
+    final roomApi = RoomApi(UserData());
     try {
-      await scheduleApi.passWaitingSchedules(scheduleId);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Confirm schedule')));
-      _loadWaitingSchedules();
+      _rooms = await roomApi.getAll();
+      setState(() {});
     } catch (e) {
-      // Handle error
-      print('Error passing schedule: $e');
+      print('Failed to load rooms: $e');
     }
   }
 
-  Future<void> _cancelSchedule(String scheduleId) async {
+  Future<void> _updateSchedule(Schedule schedule) async {
     try {
-      await scheduleApi.cancelWaitingSchedules(scheduleId);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Cancel schedule')));
-      _loadWaitingSchedules();
+      Schedule updatedSchedule = await scheduleApi.update(schedule);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Schedule updated: ${updatedSchedule.summary}')),
+      );
+      _loadMySchedules();
     } catch (e) {
-      // Handle error
-      print('Error cancelling schedule: $e');
+      print('Error updating schedule: $e');
     }
+  }
+
+  Future<void> _deleteSchedule(String scheduleId) async {
+    try {
+      await scheduleApi.delete(int.parse(scheduleId));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Schedule deleted')),
+      );
+      _loadMySchedules();
+    } catch (e) {
+      print('Error deleting schedule: $e');
+    }
+  }
+
+  String _getRoomName(int? roomId) {
+    final room = _rooms.firstWhere((room) => room.id == roomId,
+        orElse: () => Room(name: 'Unknown Room'));
+    return room.name ?? "";
   }
 
   @override
@@ -80,7 +100,7 @@ class _WaitingScheduleViewState extends State<WaitingScheduleView> {
             } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(child: Text('No waiting schedules available.'));
+              return Center(child: Text('No schedules available.'));
             }
 
             final schedules = snapshot.data!;
@@ -93,8 +113,10 @@ class _WaitingScheduleViewState extends State<WaitingScheduleView> {
                   (user) => user.id == schedule.organizer,
                   orElse: () => User(displayName: 'Unknown'),
                 );
+
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 10),
+                  color: Colors.white,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -106,7 +128,8 @@ class _WaitingScheduleViewState extends State<WaitingScheduleView> {
                               fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                         const SizedBox(height: 8),
-                        Text('Room: P.${schedule.roomId}'),
+                        Text(
+                            'Room: ${_getRoomName(schedule.roomId)}'), // Hiển thị tên phòng
                         const SizedBox(height: 4),
                         Text(
                           'Time: ${DateFormat.jm().format(DateTime(0, 0, 0, schedule.startTime!.hour, schedule.startTime!.minute))} - ${DateFormat.jm().format(DateTime(0, 0, 0, schedule.endTime!.hour, schedule.endTime!.minute))} | ${DateFormat.yMd().format(schedule.date!)}',
@@ -116,28 +139,37 @@ class _WaitingScheduleViewState extends State<WaitingScheduleView> {
                             style: TextStyle(
                                 color: Colors.teal,
                                 fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Status: ',
+                            ),
+                            Text(
+                              getStatusText(schedule.status ?? ""),
+                              style: TextStyle(
+                                color: _getStatusColor(schedule.status ?? ""),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 5),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.calendar_month,
-                                  color: Colors.blue),
+                              icon: const Icon(Icons.edit, color: Colors.blue),
                               onPressed: () {
-                                // Logic to view details
+                                _showUpdateModal(
+                                    context, schedule, _users, _rooms);
                               },
                             ),
                             IconButton(
-                              icon:
-                                  const Icon(Icons.check, color: Colors.green),
+                              icon: const Icon(Icons.delete, color: Colors.red),
                               onPressed: () {
-                                _passSchedule(schedule.id.toString());
-                              },
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.cancel, color: Colors.red),
-                              onPressed: () {
-                                _cancelSchedule(schedule.id.toString());
+                                _deleteSchedule(schedule.id.toString());
                               },
                             ),
                           ],
@@ -152,5 +184,44 @@ class _WaitingScheduleViewState extends State<WaitingScheduleView> {
         ),
       ),
     );
+  }
+}
+
+void _showUpdateModal(BuildContext context, Schedule schedule, List<User> users,
+    List<Room> rooms) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog.fullscreen(
+        child:
+            UpdateScheduleModal(schedule: schedule, users: users, rooms: rooms),
+      );
+    },
+  );
+}
+
+Color _getStatusColor(String status) {
+  switch (status.toLowerCase()) {
+    case 'confirmed':
+      return Colors.green;
+    case 'pending':
+      return Colors.orange;
+    case 'cancel':
+      return Colors.red;
+    default:
+      return Colors.black;
+  }
+}
+
+String getStatusText(String status) {
+  switch (status.toLowerCase()) {
+    case 'confirmed':
+      return ' Confirmed';
+    case 'pending':
+      return ' Pending';
+    case 'cancel':
+      return ' Cancel';
+    default:
+      return ' Unknow';
   }
 }

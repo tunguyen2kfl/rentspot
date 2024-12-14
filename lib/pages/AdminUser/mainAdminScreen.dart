@@ -35,7 +35,11 @@ class _MainAdminScreenState extends State<MainAdminScreen> {
     DeviceManagementView(),
   ];
 
-  final List<String> _titles = ['Waiting Schedule', 'Room Management', 'Device management'];
+  final List<String> _titles = [
+    'Waiting Schedule',
+    'Room Management',
+    'Device management'
+  ];
 
   @override
   void initState() {
@@ -104,36 +108,41 @@ class _MainAdminScreenState extends State<MainAdminScreen> {
         ),
       ),
       // Centered Add button
-      floatingActionButton:  Padding(
-        padding: EdgeInsets.only(bottom: 0),
-        child: ClipOval(
-          child: Material(
-            color: Color(0xFF3DA9FC),
-            child: InkWell(
-              onTap: () {
-                switch (_selectedIndex) {
-                  case 0:
-                  // Thực hiện hành động cho trường hợp 0
-                    break;
-                  case 1:
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => CreateRoomView()));
-                    break;
-                  case 2:
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => CreateDeviceView()));
-                    break;
-                  default:
-                    break;
-                }
-              },
-              child: const SizedBox(
-                width: 56,
-                height: 56,
-                child: Icon(Icons.add, size: 35, color: Colors.white),
+      floatingActionButton: _selectedIndex != 0
+          ? Padding(
+              padding: EdgeInsets.only(bottom: 0),
+              child: ClipOval(
+                child: Material(
+                  color: Color(0xFF3DA9FC),
+                  child: InkWell(
+                    onTap: () {
+                      switch (_selectedIndex) {
+                        case 1:
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => CreateRoomView()));
+                          break;
+                        case 2:
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => CreateDeviceView()));
+                          break;
+                        default:
+                          break;
+                      }
+                    },
+                    child: const SizedBox(
+                      width: 56,
+                      height: 56,
+                      child: Icon(Icons.add, size: 35, color: Colors.white),
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ),
-        ),
-      ),
+            )
+          : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }

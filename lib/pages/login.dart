@@ -71,20 +71,27 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       try {
-        final res = await userApi.login(_usernameController.text, _passwordController.text);
+        final res = await userApi.login(
+            _usernameController.text, _passwordController.text);
         if (res.role == null) {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => WelcomeScreen()));
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => WelcomeScreen()));
         } else if (res.role == 'user') {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MainScreen()));
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (context) => MainScreen()));
         } else if (res.role == 'building-admin') {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MainAdminScreen()));
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => MainAdminScreen()));
         } else {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => WelcomeScreen()));
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => WelcomeScreen()));
         }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.toString())));
       } finally {
-        if (mounted) { // Kiểm tra xem widget còn trong cây không
+        if (mounted) {
+          // Kiểm tra xem widget còn trong cây không
           setState(() {
             _isLoading = false;
           });
@@ -102,11 +109,11 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 // Logo
                 Container(
-                  margin: const EdgeInsets.only(bottom: 60),
+                  margin: const EdgeInsets.only(bottom: 20),
                   child: Image.asset(
                     'assets/images/Logo.png', // Replace with your logo path
-                    height: 150,
-                    width: 220,
+                    height: 200,
+                    width: 270,
                     fit: BoxFit.contain,
                   ),
                 ),
@@ -115,7 +122,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding: const EdgeInsets.only(bottom: 20),
                   child: TextField(
                     controller: _usernameController,
-                    decoration: Constants.customInputDecoration.copyWith(labelText: 'Username'),
+                    decoration: Constants.customInputDecoration
+                        .copyWith(labelText: 'Username'),
                   ),
                 ),
                 // Input Password
@@ -124,7 +132,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: TextField(
                     controller: _passwordController,
                     obscureText: true,
-                    decoration: Constants.customInputDecoration.copyWith(labelText: 'Password'),
+                    decoration: Constants.customInputDecoration
+                        .copyWith(labelText: 'Password'),
                   ),
                 ),
                 // Login Button
@@ -132,10 +141,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: double.infinity,
                   margin: const EdgeInsets.only(bottom: 10),
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : () {
-                      // Action for Login
-                      login();
-                    },
+                    onPressed: _isLoading
+                        ? null
+                        : () {
+                            // Action for Login
+                            login();
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _textFieldBorderColor,
                       shape: RoundedRectangleBorder(
@@ -145,20 +156,21 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     child: _isLoading
                         ? SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        strokeWidth: 2.0,
-                      ),
-                    )
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                              strokeWidth: 2.0,
+                            ),
+                          )
                         : const Text(
-                      'Login',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                      ),
-                    ),
+                            'Login',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                            ),
+                          ),
                   ),
                 ),
                 // Register Button
@@ -168,11 +180,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       // Action for Register
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => RegisterScreen()));
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => RegisterScreen()));
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
-                      side: const BorderSide(color: Color(0xFF3DA9FC), width: 1.5),
+                      side: const BorderSide(
+                          color: Color(0xFF3DA9FC), width: 1.5),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(5),
                       ),
