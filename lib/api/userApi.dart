@@ -54,7 +54,6 @@ class UserApi {
     }
   }
 
-  // Hàm để lấy thông tin người dùng
   final FlutterSecureStorage storage = FlutterSecureStorage();
 
   Future<User> getUserInfo(BuildContext context) async {
@@ -111,7 +110,7 @@ class UserApi {
     }
   }
 
-// Hàm hiển thị snackbar thông báo lỗi
+
   void showErrorSnackbar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

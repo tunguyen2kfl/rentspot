@@ -33,20 +33,6 @@ class _CreateRoomViewState extends State<CreateRoomView> {
   static const Color _textFieldBorderColor = Color(0xFF3DA9FC);
   static const double _textFieldBorderWidth = 2.0;
 
-  final InputDecoration customInputDecoration = InputDecoration(
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(_textFieldBorderRadius),
-      borderSide: BorderSide(color: _textFieldBorderColor, width: _textFieldBorderWidth),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(_textFieldBorderRadius),
-      borderSide: BorderSide(color: _textFieldBorderColor, width: _textFieldBorderWidth),
-    ),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(_textFieldBorderRadius),
-    ),
-    labelStyle: TextStyle(color: Colors.grey),
-  );
 
   @override
   void initState() {
@@ -168,7 +154,7 @@ class _CreateRoomViewState extends State<CreateRoomView> {
             children: [
               TextFormField(
                 controller: _roomNameController,
-                decoration: customInputDecoration.copyWith(labelText: 'Room Name'),
+                decoration: Constants.customInputDecoration.copyWith(labelText: 'Room Name'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'This field cannot be empty';
@@ -194,7 +180,7 @@ class _CreateRoomViewState extends State<CreateRoomView> {
               const SizedBox(height: 16.0),
               TextFormField(
                 controller: _statusController,
-                decoration: customInputDecoration.copyWith(labelText: 'Status'),
+                decoration: Constants.customInputDecoration.copyWith(labelText: 'Status'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'This field cannot be empty';
@@ -250,7 +236,7 @@ class _CreateRoomViewState extends State<CreateRoomView> {
               const SizedBox(height: 16.0),
               TextFormField(
                 controller: _descriptionController,
-                decoration: customInputDecoration.copyWith(labelText: 'Description'),
+                decoration: Constants.customInputDecoration.copyWith(labelText: 'Description'),
                 maxLines: 3,
               ),
               const SizedBox(height: 16.0),

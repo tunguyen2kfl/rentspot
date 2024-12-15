@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:rent_spot/api/buildingApi.dart';
 import 'package:rent_spot/api/userApi.dart';
 import 'package:rent_spot/components/CustomAppBar.dart';
 import 'package:rent_spot/components/SideBar.dart';
+import 'package:rent_spot/models/building.dart';
 import 'package:rent_spot/models/user.dart';
 import 'package:rent_spot/pages/AdminUser/createDevice.dart';
 import 'package:rent_spot/pages/AdminUser/createRoom.dart';
 import 'package:rent_spot/pages/AdminUser/deviceManagement.dart';
 import 'package:rent_spot/pages/AdminUser/roomMgmt.dart';
+import 'package:rent_spot/pages/AdminUser/updateBuilding.dart';
 import 'package:rent_spot/pages/AdminUser/waitingSchedule.dart';
+import 'package:rent_spot/pages/viewBuilding.dart';
 import 'package:rent_spot/stores/building.dart';
 import 'package:rent_spot/stores/userData.dart';
 
@@ -27,18 +31,21 @@ class _MainAdminScreenState extends State<MainAdminScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final UserApi userApi = UserApi(UserData());
   final BuildingApi buildingApi = BuildingApi(BuildingData());
-  int _selectedIndex = 0; // Default to Home page
+  final FlutterSecureStorage storage = FlutterSecureStorage();
+  int _selectedIndex = 0;
 
   final List<Widget> _pages = [
     WaitingScheduleView(),
     RoomManagementView(),
     DeviceManagementView(),
+    BuildingInformationView()
   ];
 
   final List<String> _titles = [
     'Waiting Schedule',
     'Room Management',
-    'Device management'
+    'Device management',
+    'Building'
   ];
 
   @override
@@ -46,6 +53,7 @@ class _MainAdminScreenState extends State<MainAdminScreen> {
     super.initState();
     _selectedIndex = widget.initialPageIndex;
     _getUserInfo();
+    _getBuildingInfor();
   }
 
   Future<void> _getUserInfo() async {
@@ -59,8 +67,11 @@ class _MainAdminScreenState extends State<MainAdminScreen> {
 
   Future<void> _getBuildingInfor() async {
     try {
-      bool success = await buildingApi
-          .fetchBuildingById(int.parse(UserData().buildingId.toString()));
+      final buildingId = await storage.read(key: 'buildingId');
+      if (buildingId != null) {
+        Building success = await buildingApi
+            .fetchBuildingById(int.parse(buildingId));
+      }
     } catch (e) {
       print("Error getting user info: $e");
     }
@@ -74,6 +85,8 @@ class _MainAdminScreenState extends State<MainAdminScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userData = Provider.of<UserData>(context);
+    print(userData.role);
     return Scaffold(
       key: _scaffoldKey,
       appBar: CustomAppBar(
@@ -103,12 +116,13 @@ class _MainAdminScreenState extends State<MainAdminScreen> {
               buildNavBarItem(Icons.calendar_month, 'Schedules', 0),
               buildNavBarItem(Icons.meeting_room, 'Room', 1),
               buildNavBarItem(Icons.devices_outlined, 'Device', 2),
+              buildNavBarItem(Icons.maps_home_work_outlined, 'Building', 3),
             ],
           ),
         ),
       ),
       // Centered Add button
-      floatingActionButton: _selectedIndex != 0
+      floatingActionButton: _selectedIndex != 0 && _selectedIndex != 3
           ? Padding(
               padding: EdgeInsets.only(bottom: 0),
               child: ClipOval(

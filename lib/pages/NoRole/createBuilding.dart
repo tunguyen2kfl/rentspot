@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rent_spot/common/constants.dart';
 import 'dart:math';
 import 'package:rent_spot/components/SideBar.dart';
 import 'package:rent_spot/components/CustomAppBar.dart';
@@ -59,23 +60,6 @@ class _CreateBuildingViewState extends State<CreateBuildingView> {
     });
   }
 
-  // Reusable input decoration
-  final InputDecoration customInputDecoration = InputDecoration(
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: BorderSide(
-          color: _textFieldBorderColor, width: _textFieldBorderWidth),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: BorderSide(
-          color: _textFieldBorderColor, width: _textFieldBorderWidth),
-    ),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-    ),
-    labelStyle: TextStyle(color: Colors.grey),
-  );
 
   String? _validateRequired(String? value) {
     if (value == null || value.trim().isEmpty) {
@@ -166,36 +150,36 @@ class _CreateBuildingViewState extends State<CreateBuildingView> {
                     const SizedBox(height: 16.0),
                     TextFormField(
                       controller: _buildingNameController,
-                      decoration: customInputDecoration.copyWith(
+                      decoration: Constants.customInputDecoration.copyWith(
                           labelText: 'Building Name'),
                       validator: _validateRequired,
                     ),
                     const SizedBox(height: 16.0),
                     TextFormField(
                       controller: _addressController,
-                      decoration: customInputDecoration.copyWith(labelText: 'Address'),
+                      decoration: Constants.customInputDecoration.copyWith(labelText: 'Address'),
                     ),
                     const SizedBox(height: 16.0),
                     TextFormField(
                       controller: _websiteController,
-                      decoration: customInputDecoration.copyWith(labelText: 'Website'),
+                      decoration: Constants.customInputDecoration.copyWith(labelText: 'Website'),
                     ),
                     const SizedBox(height: 16.0),
                     TextFormField(
                       controller: _emailController,
-                      decoration: customInputDecoration.copyWith(labelText: 'Email'),
+                      decoration: Constants.customInputDecoration.copyWith(labelText: 'Email'),
                       validator: _validateRequired,
                     ),
                     const SizedBox(height: 16.0),
                     TextFormField(
                       controller: _phoneController,
-                      decoration: customInputDecoration.copyWith(labelText: 'Phone'),
+                      decoration: Constants.customInputDecoration.copyWith(labelText: 'Phone'),
                       validator: _validateRequired,
                     ),
                     const SizedBox(height: 16.0),
                     TextFormField(
                       controller: _inviteCodeController,
-                      decoration: customInputDecoration.copyWith(
+                      decoration: Constants.customInputDecoration.copyWith(
                         labelText: 'Invite Code',
                         suffixIcon: IconButton(
                           icon: const Icon(Icons.refresh),

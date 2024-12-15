@@ -11,6 +11,9 @@ class Constants {
   static const String apiUrl = 'http://10.0.2.2:8080';
   static const String apiKey = 'your_api_key_here';
   static const String appName = 'My Flutter App';
+  static const Color _textFieldBorderColor = Color(0xFF3DA9FC);
+  static const double _textFieldBorderWidth = 2.0;
+  static const double _textFieldBorderRadius = 10;
   // Global input decoration constants
   static final InputDecoration customInputDecoration = InputDecoration(
     enabledBorder: OutlineInputBorder(

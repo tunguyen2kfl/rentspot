@@ -27,30 +27,12 @@ class _UpdateDeviceViewState extends State<UpdateDeviceView> {
 
   DeviceApi deviceApi = DeviceApi(UserData());
 
-  static const double _textFieldBorderRadius = 10;
   static const Color _textFieldBorderColor = Color(0xFF3DA9FC);
-  static const double _textFieldBorderWidth = 2.0;
-
-  final InputDecoration customInputDecoration = InputDecoration(
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(_textFieldBorderRadius),
-      borderSide: BorderSide(color: _textFieldBorderColor, width: _textFieldBorderWidth),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(_textFieldBorderRadius),
-      borderSide: BorderSide(color: _textFieldBorderColor, width: _textFieldBorderWidth),
-    ),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(_textFieldBorderRadius),
-    ),
-    labelStyle: TextStyle(color: Colors.grey),
-  );
 
   @override
   void initState() {
     super.initState();
 
-    // Khởi tạo thông tin thiết bị
     _deviceNameController.text = widget.device.name ?? '';
     _descriptionController.text = widget.device.description ?? '';
   }
@@ -82,20 +64,24 @@ class _UpdateDeviceViewState extends State<UpdateDeviceView> {
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       Device updatedDevice = Device(
-        id: widget.device.id, // Giữ nguyên ID để cập nhật
+        id: widget.device.id,
         name: _deviceNameController.text,
         description: _descriptionController.text,
       );
 
       try {
-        Device createdDevice = await deviceApi.update(updatedDevice, _imageFile);
+        Device createdDevice =
+            await deviceApi.update(updatedDevice, _imageFile);
         print('Device updated: ${createdDevice.name}');
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Device updated!')),
         );
 
-        Navigator.push(context, MaterialPageRoute(builder: (context) => MainAdminScreen(initialPageIndex: 2)));
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => MainAdminScreen(initialPageIndex: 2)));
       } catch (e) {
         print('Error updating device: $e');
         ScaffoldMessenger.of(context).showSnackBar(
@@ -132,7 +118,8 @@ class _UpdateDeviceViewState extends State<UpdateDeviceView> {
                         ? NetworkImage('${baseUrl}${widget.device.image}')
                         : FileImage(_imageFile!),
                     child: _imageFile == null
-                        ? Icon(Icons.camera_alt, size: 50, color: _textFieldBorderColor)
+                        ? Icon(Icons.camera_alt,
+                            size: 50, color: _textFieldBorderColor)
                         : null,
                   ),
                 ),
@@ -140,7 +127,8 @@ class _UpdateDeviceViewState extends State<UpdateDeviceView> {
               const SizedBox(height: 16.0),
               TextFormField(
                 controller: _deviceNameController,
-                decoration: customInputDecoration.copyWith(labelText: 'Device Name'),
+                decoration: Constants.customInputDecoration
+                    .copyWith(labelText: 'Device Name'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'This field cannot be empty';
@@ -151,7 +139,8 @@ class _UpdateDeviceViewState extends State<UpdateDeviceView> {
               const SizedBox(height: 16.0),
               TextFormField(
                 controller: _descriptionController,
-                decoration: customInputDecoration.copyWith(labelText: 'Description'),
+                decoration: Constants.customInputDecoration
+                    .copyWith(labelText: 'Description'),
                 maxLines: 3,
               ),
               const SizedBox(height: 16.0),

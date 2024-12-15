@@ -6,6 +6,9 @@ class User {
   final String? displayName;
   final num? buildingId;
   final dynamic role;
+  final String? avatar;
+  final String? website;
+  final String? phone;
 
   User({
     this.id,
@@ -14,7 +17,10 @@ class User {
     this.email,
     this.displayName,
     this.role,
-    this.buildingId
+    this.buildingId,
+    this.avatar,
+    this.website,
+    this.phone,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -25,7 +31,10 @@ class User {
       email: json['email'],
       displayName: json['displayName'],
       role: json['role'],
-      buildingId: json['buildingId']
+      buildingId: json['buildingId'],
+      avatar: json['avatar'],
+      website: json['website'],
+      phone: json['phone'],
     );
   }
 
@@ -37,7 +46,10 @@ class User {
       'email': email,
       'displayName': displayName,
       'role': role,
-      'buildingId': buildingId
+      'buildingId': buildingId,
+      'avatar': avatar,
+      'website': website,
+      'phone': phone,
     };
   }
 }

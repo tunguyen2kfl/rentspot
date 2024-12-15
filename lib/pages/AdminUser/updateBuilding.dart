@@ -1,5 +1,14 @@
-import 'package:flutter/material.dart';
 import 'dart:math';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:rent_spot/api/buildingApi.dart';
+import 'package:rent_spot/components/CustomAppBar.dart';
+import 'package:rent_spot/components/SideBar.dart';
+import 'package:rent_spot/models/building.dart';
+import 'package:rent_spot/common/constants.dart';
+import 'package:rent_spot/pages/AdminUser/mainAdminScreen.dart';
+import 'package:rent_spot/stores/building.dart';
 
 class UpdateBuildingView extends StatefulWidget {
   const UpdateBuildingView({Key? key}) : super(key: key);
@@ -8,18 +17,19 @@ class UpdateBuildingView extends StatefulWidget {
   _UpdateBuildingViewState createState() => _UpdateBuildingViewState();
 }
 
-const double _textFieldBorderRadius = 10;
 const Color _textFieldBorderColor = Color(0xFF3DA9FC);
-const double _textFieldBorderWidth = 2.0;
 
 class _UpdateBuildingViewState extends State<UpdateBuildingView> {
   final _formKey = GlobalKey<FormState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final _buildingNameController = TextEditingController();
   final _addressController = TextEditingController();
   final _websiteController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _inviteCodeController = TextEditingController();
+  final FlutterSecureStorage storage = FlutterSecureStorage();
+  final BuildingApi buildingApi = BuildingApi(BuildingData());
 
   @override
   void dispose() {
@@ -32,140 +42,175 @@ class _UpdateBuildingViewState extends State<UpdateBuildingView> {
     super.dispose();
   }
 
-  void _loadBuildingData() {
-    // Giả lập tải dữ liệu tòa nhà - thay thế bằng dữ liệu thực tế
-    _buildingNameController.text = 'Building A';
-    _addressController.text = '123 Example Street';
-    _websiteController.text = 'www.example.com';
-    _emailController.text = 'contact@example.com';
-    _phoneController.text = '123456789';
-    _inviteCodeController.text = 'ABCDE12345'; // Giả lập mã mời
+  void _generateInviteCode() {
+    const chars =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final random = Random();
+    final inviteCode = String.fromCharCodes(Iterable.generate(
+      10, // Length of the invite code
+          (_) => chars.codeUnitAt(random.nextInt(chars.length)),
+    ));
+    setState(() {
+      _inviteCodeController.text = inviteCode;
+    });
   }
 
-  // Reusable input decoration
-  final InputDecoration customInputDecoration = InputDecoration(
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: BorderSide(
-          color: _textFieldBorderColor, width: _textFieldBorderWidth),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: BorderSide(
-          color: _textFieldBorderColor, width: _textFieldBorderWidth),
-    ),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-    ),
-    labelStyle: TextStyle(color: Colors.grey),
-  );
+  Future<void> _loadBuildingData() async {
+    final buildingId = await storage.read(key: 'buildingId');
+    if (buildingId != null) {
+      try {
+        Building building = await buildingApi.fetchBuildingById(int.parse(buildingId));
+        _buildingNameController.text = building.name ?? "";
+        _addressController.text = building.address ?? "";
+        _websiteController.text = building.website ?? "";
+        _emailController.text = building.email ?? "";
+        _phoneController.text = building.phone ?? "";
+        _inviteCodeController.text = building.inviteCode ?? "";
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load building data: $e')),
+        );
+      }
+    }
+  }
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      // In ra tất cả các giá trị trường
-      print('Building Name: ${_buildingNameController.text}');
-      print('Address: ${_addressController.text}');
-      print('Website: ${_websiteController.text}');
-      print('Email: ${_emailController.text}');
-      print('Phone: ${_phoneController.text}');
-      print('Invite Code: ${_inviteCodeController.text}');
+  Future<void> _updateBuilding() async {
+    final buildingId = await storage.read(key: 'buildingId');
+    if (buildingId != null) {
+      Building updatedBuilding = Building(
+        id: int.parse(buildingId),
+        name: _buildingNameController.text,
+        address: _addressController.text,
+        website: _websiteController.text,
+        email: _emailController.text,
+        phone: _phoneController.text,
+        inviteCode: _inviteCodeController.text,
+      );
+
+      final success = await buildingApi.updateBuilding(int.parse(buildingId), updatedBuilding);
+      if (success) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MainAdminScreen(initialPageIndex: 3),
+          ),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Building updated successfully!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update building.')),
+        );
+      }
     }
   }
 
   @override
   void initState() {
     super.initState();
-    _loadBuildingData(); // Tải dữ liệu khi khởi tạo
+    _loadBuildingData();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Update Building'),
-        ),
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  TextFormField(
-                    controller: _buildingNameController,
-                    decoration: customInputDecoration.copyWith(
-                        labelText: 'Building Name'),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a building name';
+      key: _scaffoldKey,
+      appBar: CustomAppBar(
+        title: "Update Building",
+        onSidebarButtonPressed: () {
+          if (_scaffoldKey.currentState != null) {
+            _scaffoldKey.currentState!.openDrawer();
+          }
+        },
+        onBackButtonPressed: () {
+          Navigator.pop(context);
+        },
+      ),
+      drawer: const SideMenu(),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextFormField(
+                  controller: _buildingNameController,
+                  decoration: Constants.customInputDecoration.copyWith(labelText: 'Building Name'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a building name';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16.0),
+                TextFormField(
+                  controller: _addressController,
+                  decoration: Constants.customInputDecoration.copyWith(labelText: 'Address'),
+                ),
+                const SizedBox(height: 16.0),
+                TextFormField(
+                  controller: _websiteController,
+                  decoration: Constants.customInputDecoration.copyWith(labelText: 'Website'),
+                ),
+                const SizedBox(height: 16.0),
+                TextFormField(
+                  controller: _emailController,
+                  decoration: Constants.customInputDecoration.copyWith(labelText: 'Email'),
+                ),
+                const SizedBox(height: 16.0),
+                TextFormField(
+                  controller: _phoneController,
+                  decoration: Constants.customInputDecoration.copyWith(labelText: 'Phone'),
+                ),
+                const SizedBox(height: 16.0),
+                TextFormField(
+                  controller: _inviteCodeController,
+                  decoration: Constants.customInputDecoration.copyWith(
+                    labelText: 'Invite Code',
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.refresh),
+                      onPressed: () {
+                        _generateInviteCode();
+                      },
+                    ),
+                  ),
+                  readOnly: true,
+                ),
+                const SizedBox(height: 16.0),
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 10),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        _updateBuilding();
                       }
-                      return null;
                     },
-                  ),
-                  const SizedBox(height: 16.0),
-                  TextFormField(
-                    controller: _addressController,
-                    decoration:
-                    customInputDecoration.copyWith(labelText: 'Address'),
-                  ),
-                  const SizedBox(height: 16.0),
-                  TextFormField(
-                    controller: _websiteController,
-                    decoration:
-                    customInputDecoration.copyWith(labelText: 'Website'),
-                  ),
-                  const SizedBox(height: 16.0),
-                  TextFormField(
-                    controller: _emailController,
-                    decoration:
-                    customInputDecoration.copyWith(labelText: 'Email'),
-                  ),
-                  const SizedBox(height: 16.0),
-                  TextFormField(
-                    controller: _phoneController,
-                    decoration:
-                    customInputDecoration.copyWith(labelText: 'Phone'),
-                  ),
-                  const SizedBox(height: 16.0),
-                  TextFormField(
-                      controller: _inviteCodeController,
-                      decoration: customInputDecoration.copyWith(
-                        labelText: 'Invite Code',
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.refresh),
-                          onPressed: () {
-                            // Có thể thêm logic để tạo mã mời mới nếu cần
-                          },
-                        ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _textFieldBorderColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
                       ),
-                      readOnly: true),
-                  const SizedBox(height: 16.0),
-                  Container(
-                    width: double.infinity,
-                    margin: const EdgeInsets.only(bottom: 10),
-                    child: ElevatedButton(
-                      onPressed: _submitForm,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _textFieldBorderColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        minimumSize: Size(0, 50),
-                      ),
-                      child: const Text(
-                        'Update',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                        ),
+                      minimumSize: Size(0, 50),
+                    ),
+                    child: const Text(
+                      'Update',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 }

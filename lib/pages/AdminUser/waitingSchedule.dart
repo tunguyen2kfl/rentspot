@@ -116,7 +116,7 @@ class _WaitingScheduleViewState extends State<WaitingScheduleView> {
                             style: TextStyle(
                                 color: Colors.teal,
                                 fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 5),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [

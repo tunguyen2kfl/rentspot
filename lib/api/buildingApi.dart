@@ -16,7 +16,7 @@ class BuildingApi {
     return await storage.read(key: 'accessToken');
   }
 
-  Future<bool> fetchBuildingById(int id) async {
+  Future<Building> fetchBuildingById(int id) async {
     final accessToken = await _getAccessToken();
     final response = await http.get(
       Uri.parse('$baseUrl/api/buildings/$id'),
@@ -29,9 +29,9 @@ class BuildingApi {
       final json = jsonDecode(response.body);
       final building = Building.fromJson(json);
       await buildingData.setBuildingInfo(building);
-      return true;
+      return building;
     } else {
-      return false;
+      throw Exception('Failed to get building infor');
     }
   }
 

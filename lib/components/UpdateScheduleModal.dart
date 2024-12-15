@@ -272,14 +272,15 @@ class _UpdateScheduleModalState extends State<UpdateScheduleModal> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          backgroundColor: Colors.white60,
           title: const Text('Update Schedule',
               style: TextStyle(
                   color: Colors.black,
-                  fontSize: 24,
+                  fontSize: 20,
                   fontWeight: FontWeight.w500)),
           leading: IconButton(
             icon: const Icon(
-              Icons.highlight_off,
+              Icons.backspace,
               size: 24,
               color: Color(0xFF3DA9FC),
             ),
