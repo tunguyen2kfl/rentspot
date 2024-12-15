@@ -3,8 +3,11 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:rent_spot/api/userApi.dart';
 import 'package:rent_spot/common/constants.dart';
+import 'package:rent_spot/components/CustomAppBar.dart';
+import 'package:rent_spot/components/SideBar.dart';
 import 'package:rent_spot/models/user.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:rent_spot/pages/UserView/mainScreen.dart';
 import 'dart:io';
 
 import 'package:rent_spot/stores/userData.dart';
@@ -16,6 +19,7 @@ class ProfileView extends StatefulWidget {
 
 class _ProfileViewState extends State<ProfileView> {
   final _formKey = GlobalKey<FormState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _websiteController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -35,6 +39,8 @@ class _ProfileViewState extends State<ProfileView> {
   Future<void> _loadUserInfo() async {
     try {
       user = await userApi.getUserInfo(context);
+      print("LoadUserInforProfile");
+      print(user?.avatar);
       setState(() {
         _nameController.text = user?.displayName ?? '';
         _websiteController.text = user?.website ?? '';
@@ -59,24 +65,43 @@ class _ProfileViewState extends State<ProfileView> {
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       User updatedUser = User(
-        id: user?.id,
         displayName: _nameController.text,
         website: _websiteController.text,
         email: _emailController.text,
         phone: _phoneController.text,
-        avatar: user?.avatar,
       );
 
-      print('Updated User: ${updatedUser.toJson()}');
-      print('Image File: ${_imageFile?.path}');
+      try {
+        User userProfile = await userApi.updateProfile(updatedUser, _imageFile);
+        print('Profile updated: ${userProfile.username}');
 
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Profile updated!')),
+        );
+      } catch (e) {
+        print('Error Profile device: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating Profile: $e')),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Profile')),
+      key: _scaffoldKey,
+      appBar: CustomAppBar(
+        title: "Profile",
+        onSidebarButtonPressed: () {},
+        onBackButtonPressed: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const MainScreen()),
+          );
+        },
+      ),
+      drawer: const SideMenu(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -89,10 +114,13 @@ class _ProfileViewState extends State<ProfileView> {
                   onTap: _pickImage,
                   child: CircleAvatar(
                     radius: 80,
-                    backgroundImage: _imageFile == null
-                        ? NetworkImage('${Constants.apiUrl}${user?.avatar}')
-                        : FileImage(_imageFile!),
-                    child: _imageFile == null
+                    backgroundImage: _imageFile != null
+                        ? FileImage(_imageFile!)
+                        : (user?.avatar != null && user!.avatar!.isNotEmpty)
+                            ? NetworkImage('${Constants.apiUrl}${user!.avatar}')
+                            : null,
+                    child: (_imageFile == null &&
+                            (user?.avatar == null || user!.avatar!.isEmpty))
                         ? Icon(Icons.camera_alt, size: 50, color: Colors.grey)
                         : null,
                   ),
@@ -101,7 +129,8 @@ class _ProfileViewState extends State<ProfileView> {
               const SizedBox(height: 32.0),
               TextFormField(
                 controller: _nameController,
-                decoration: Constants.customInputDecoration.copyWith(labelText: 'Name/Display Name'),
+                decoration: Constants.customInputDecoration
+                    .copyWith(labelText: 'Name/Display Name'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'This field cannot be empty';
@@ -112,14 +141,17 @@ class _ProfileViewState extends State<ProfileView> {
               const SizedBox(height: 16.0),
               TextFormField(
                 controller: _websiteController,
-                decoration: Constants.customInputDecoration.copyWith(labelText: 'Website'),
+                decoration: Constants.customInputDecoration
+                    .copyWith(labelText: 'Website'),
               ),
               const SizedBox(height: 16.0),
               TextFormField(
                 controller: _emailController,
-                decoration: Constants.customInputDecoration.copyWith(labelText: 'Email'),
+                decoration: Constants.customInputDecoration
+                    .copyWith(labelText: 'Email'),
                 validator: (value) {
-                  if (value == null || !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                  if (value == null ||
+                      !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
                     return 'Please enter a valid email';
                   }
                   return null;
@@ -128,7 +160,8 @@ class _ProfileViewState extends State<ProfileView> {
               const SizedBox(height: 16.0),
               TextFormField(
                 controller: _phoneController,
-                decoration: Constants.customInputDecoration.copyWith(labelText: 'Phone'),
+                decoration: Constants.customInputDecoration
+                    .copyWith(labelText: 'Phone'),
               ),
               const SizedBox(height: 48.0),
               ElevatedButton(

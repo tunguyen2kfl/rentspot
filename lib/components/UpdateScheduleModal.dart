@@ -280,9 +280,8 @@ class _UpdateScheduleModalState extends State<UpdateScheduleModal> {
                   fontWeight: FontWeight.w500)),
           leading: IconButton(
             icon: const Icon(
-              Icons.backspace,
-              size: 24,
-              color: Color(0xFF3DA9FC),
+              Icons.arrow_back_outlined,
+              size: 22,
             ),
             onPressed: () {
               Navigator.pop(context);

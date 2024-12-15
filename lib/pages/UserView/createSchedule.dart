@@ -271,10 +271,11 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white60,
         title: const Text('Create Schedule',
             style: TextStyle(
                 color: Colors.black,
-                fontSize: 24,
+                fontSize: 20,
                 fontWeight: FontWeight.w500)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_outlined, size: 22),

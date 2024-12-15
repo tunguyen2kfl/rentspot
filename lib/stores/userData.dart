@@ -21,8 +21,9 @@ class UserData with ChangeNotifier {
       _accessToken = await storage.read(key: 'accessToken');
       _username = await storage.read(key: 'username');
       _email = await storage.read(key: 'email');
+      _avatar = await storage.read(key: 'avatar');
       _displayName = await storage.read(key: 'displayName');
-      String? idString = await storage.read(key: 'id'); // Đọc id từ storage
+      String? idString = await storage.read(key: 'id');
       if (idString != null) {
         print('idString $idString');
         _id = int.parse(idString);
@@ -58,6 +59,7 @@ class UserData with ChangeNotifier {
     _displayName = user.displayName;
     _role = user.role;
     _id = user.id;
+    _avatar = user.avatar;
     _buildingId = user.buildingId;
 
     // Lưu trữ tất cả thông tin vào storage
@@ -65,6 +67,7 @@ class UserData with ChangeNotifier {
     await storage.write(key: 'username', value: _username);
     await storage.write(key: 'email', value: _email);
     await storage.write(key: 'displayName', value: _displayName);
+    await storage.write(key: 'avatar', value: _avatar);
     await storage.write(key: 'buildingId', value: _buildingId.toString());
     await storage.write(
         key: 'role', value: _role.toString()); // Chuyển đổi nếu cần
@@ -89,6 +92,7 @@ class UserData with ChangeNotifier {
     _displayName = null;
     _role = null;
     _id = null;
+    _avatar = null;
     _buildingId = null;
     await storage.deleteAll();
     notifyListeners();

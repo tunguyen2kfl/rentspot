@@ -6,8 +6,20 @@ import 'package:rent_spot/pages/login.dart';
 import 'package:rent_spot/pages/profile.dart';
 import 'package:rent_spot/stores/userData.dart';
 
-class SideMenu extends StatelessWidget {
+class SideMenu extends StatefulWidget {
   const SideMenu({Key? key}) : super(key: key);
+
+  @override
+  _SideMenuState createState() => _SideMenuState();
+}
+
+class _SideMenuState extends State<SideMenu> {
+  @override
+  void initState() {
+    super.initState();
+    final userData = Provider.of<UserData>(context, listen: false);
+    userData.loadUserData();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,6 +27,7 @@ class SideMenu extends StatelessWidget {
     final storage = FlutterSecureStorage();
 
     return Drawer(
+      backgroundColor: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -25,9 +38,9 @@ class SideMenu extends StatelessWidget {
               child: CircleAvatar(
                 radius: 60,
                 backgroundImage: userData.avatar != null
-                    ? NetworkImage('${Constants.apiUrl}${userData?.avatar}')
+                    ? NetworkImage('${Constants.apiUrl}${userData.avatar}')
                     : null,
-                child:  userData.avatar == null
+                child: userData.avatar == null
                     ? Icon(Icons.person, size: 50, color: Colors.grey)
                     : null,
               ),
@@ -59,12 +72,13 @@ class SideMenu extends StatelessWidget {
                 );
               },
               style: OutlinedButton.styleFrom(
+                backgroundColor: Colors.white,
                 side: BorderSide(color: Color(0xFF3DA9FC)),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)),
                 padding: EdgeInsets.symmetric(vertical: 5),
               ),
-              child: Text('View Profile', style: TextStyle(color: Colors.black),),
+              child: Text('View Profile', style: TextStyle(color: Colors.black)),
             ),
             const SizedBox(height: 20),
             if (userData.buildings != null && userData.buildings!.isNotEmpty) ...[
@@ -99,7 +113,7 @@ class SideMenu extends StatelessWidget {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () async {
-                await storage.deleteAll(); // Xóa tất cả dữ liệu lưu trữ
+                await storage.deleteAll();
 
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(
@@ -108,7 +122,7 @@ class SideMenu extends StatelessWidget {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF3DA9FC), // Màu nền
+                backgroundColor: Color(0xFF3DA9FC),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10), // Radius
                 ),

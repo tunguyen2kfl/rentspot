@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -6,6 +7,7 @@ import 'package:rent_spot/common/constants.dart';
 import 'package:rent_spot/models/user.dart';
 import 'package:rent_spot/pages/login.dart';
 import 'package:rent_spot/stores/userData.dart';
+import 'package:http_parser/http_parser.dart';
 import 'dart:convert';
 
 class UserApi {
@@ -107,6 +109,43 @@ class UserApi {
     } catch (error) {
       showErrorSnackbar(context, 'Error occurred: $error');
       return [];
+    }
+  }
+
+  Future<User> updateProfile(User user, File? imageFile) async {
+    final accessToken = await storage.read(key: 'accessToken');
+    final request = http.MultipartRequest(
+      'PUT',
+      Uri.parse('$baseUrl/api/users/profile'),
+    );
+
+    request.headers['Authorization'] = 'Bearer $accessToken';
+
+    request.fields['name'] = user.displayName ?? '';
+    request.fields['website'] = user.website ?? '';
+    request.fields['email'] = user.email ?? '';
+    request.fields['phone'] = user.phone ?? '';
+
+    if (imageFile != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'image',
+          imageFile.path,
+          contentType: MediaType('image', 'jpeg'),
+        ),
+      );
+    }
+
+    final response = await request.send();
+    final responseBody = await http.Response.fromStream(response);
+
+    if (response.statusCode == 200) {
+      print(jsonDecode(responseBody.body)['user']);
+      User user = User.fromJson(jsonDecode(responseBody.body)['user']);
+      await userData.setUserInfo(user);
+      return user;
+    } else {
+      throw Exception('Failed to update profile: ${responseBody.body}');
     }
   }
 
