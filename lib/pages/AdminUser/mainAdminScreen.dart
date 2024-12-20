@@ -11,7 +11,7 @@ import 'package:rent_spot/pages/AdminUser/createDevice.dart';
 import 'package:rent_spot/pages/AdminUser/createRoom.dart';
 import 'package:rent_spot/pages/AdminUser/deviceManagement.dart';
 import 'package:rent_spot/pages/AdminUser/roomMgmt.dart';
-import 'package:rent_spot/pages/AdminUser/updateBuilding.dart';
+import 'package:rent_spot/pages/AdminUser/userManagement.dart';
 import 'package:rent_spot/pages/AdminUser/waitingSchedule.dart';
 import 'package:rent_spot/pages/viewBuilding.dart';
 import 'package:rent_spot/stores/building.dart';
@@ -38,14 +38,16 @@ class _MainAdminScreenState extends State<MainAdminScreen> {
     WaitingScheduleView(),
     RoomManagementView(),
     DeviceManagementView(),
-    BuildingInformationView()
+    BuildingInformationView(),
+    UserManagementScreen()
   ];
 
   final List<String> _titles = [
     'Waiting Schedule',
     'Room Management',
     'Device management',
-    'Building'
+    'Building',
+    'User Management'
   ];
 
   @override
@@ -117,12 +119,13 @@ class _MainAdminScreenState extends State<MainAdminScreen> {
               buildNavBarItem(Icons.meeting_room, 'Room', 1),
               buildNavBarItem(Icons.devices_outlined, 'Device', 2),
               buildNavBarItem(Icons.maps_home_work_outlined, 'Building', 3),
+              buildNavBarItem(Icons.supervised_user_circle, 'User', 4),
             ],
           ),
         ),
       ),
       // Centered Add button
-      floatingActionButton: _selectedIndex != 0 && _selectedIndex != 3
+      floatingActionButton: _selectedIndex != 0 && _selectedIndex != 3 && _selectedIndex != 4
           ? Padding(
               padding: EdgeInsets.only(bottom: 0),
               child: ClipOval(

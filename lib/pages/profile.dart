@@ -7,6 +7,8 @@ import 'package:rent_spot/components/CustomAppBar.dart';
 import 'package:rent_spot/components/SideBar.dart';
 import 'package:rent_spot/models/user.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:rent_spot/pages/AdminUser/mainAdminScreen.dart';
+import 'package:rent_spot/pages/NoRole/welcome.dart';
 import 'package:rent_spot/pages/UserView/mainScreen.dart';
 import 'dart:io';
 
@@ -95,10 +97,19 @@ class _ProfileViewState extends State<ProfileView> {
         title: "Profile",
         onSidebarButtonPressed: () {},
         onBackButtonPressed: () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const MainScreen()),
-          );
+          print(user?.role);
+          if (user?.role == 'building-admin') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const MainAdminScreen()),
+            );
+          } else if (user?.role == 'user') {
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) => const MainScreen()));
+          } else{
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) =>  WelcomeScreen()));
+          }
         },
       ),
       drawer: const SideMenu(),

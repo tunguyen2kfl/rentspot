@@ -8,7 +8,8 @@ const double _textFieldBorderWidth = 2.0;
 const double _textFieldBorderRadius = 10;
 
 class Constants {
-  static const String apiUrl = 'http://10.0.2.2:8080';
+  // static const String apiUrl = 'http://10.0.2.2:7040';
+  static const String apiUrl = 'http://rentspot.toppasolutions.vn';
   static const String apiKey = 'your_api_key_here';
   static const String appName = 'My Flutter App';
   static const Color _textFieldBorderColor = Color(0xFF3DA9FC);

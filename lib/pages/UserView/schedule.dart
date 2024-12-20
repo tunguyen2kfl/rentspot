@@ -35,6 +35,7 @@ class _SchedulesViewState extends State<SchedulesView> {
   List<Room> _rooms = [];
   List<User> _users = [];
   List<Schedule> _schedules = [];
+  bool isLoading = true; // Trạng thái loading
 
   @override
   void initState() {
@@ -54,21 +55,20 @@ class _SchedulesViewState extends State<SchedulesView> {
     final roomApi = RoomApi(UserData());
     try {
       _rooms = await roomApi.getAll();
-      _events = _DataSource(_getAppointments(), _getCalendarResources());
-      setState(() {});
     } catch (e) {
       print('Failed to load rooms: $e');
     }
+    _updateLoadingState();
   }
 
   Future<void> _fetchUsers() async {
     final userApi = UserApi(UserData());
     try {
       _users = await userApi.getAllUserInBuilding(context);
-      setState(() {});
     } catch (e) {
       print('Failed to load users: $e');
     }
+    _updateLoadingState();
   }
 
   Future<void> _fetchSchedules() async {
@@ -76,11 +76,19 @@ class _SchedulesViewState extends State<SchedulesView> {
     try {
       _schedules = await scheduleApi.getAll();
       print(_schedules.length);
-      _events = _DataSource(_getAppointments(), _getCalendarResources());
-      setState(() {}); // Gọi setState sau khi cập nhật tất cả
     } catch (e) {
       print('Failed to load schedules: $e');
     }
+    _updateLoadingState();
+  }
+
+  void _updateLoadingState() {
+    setState(() {
+      isLoading = false;
+      if (!isLoading) {
+        _events = _DataSource(_getAppointments(), _getCalendarResources());
+      }
+    });
   }
 
   List<CalendarResource> _getCalendarResources() {
@@ -128,7 +136,7 @@ class _SchedulesViewState extends State<SchedulesView> {
     final userData = Provider.of<UserData>(context);
 
     return Scaffold(
-      body: _rooms.isEmpty || _schedules.isEmpty
+      body: isLoading
           ? Center(child: CircularProgressIndicator())
           : Column(
               children: [
@@ -174,11 +182,10 @@ class _SchedulesViewState extends State<SchedulesView> {
                       timeIntervalWidth: 200,
                       timeInterval: Duration(minutes: 60),
                       timeFormat: 'hh:mm a',
-                      // timeRulerSize: 40,
                       timeTextStyle: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color:  Color(0xFF006bb3),
+                        color: Color(0xFF006bb3),
                       ),
                     ),
                     viewHeaderStyle: const ViewHeaderStyle(

@@ -149,6 +149,21 @@ class UserApi {
     }
   }
 
+  Future<bool> removeUserFromBuilding(String? id) async {
+    final buildingId = await storage.read(key: 'buildingId');
+    final accessToken = await storage.read(key: 'accessToken');
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/users/removeUserFromBuilding/$id?buildingId=$buildingId'),
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
+
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
 
   void showErrorSnackbar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
