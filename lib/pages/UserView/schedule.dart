@@ -5,6 +5,7 @@ import 'package:rent_spot/api/roomApi.dart';
 import 'package:rent_spot/api/userApi.dart';
 import 'package:rent_spot/api/scheduleApi.dart';
 import 'package:rent_spot/components/DateSlide.dart';
+import 'package:rent_spot/components/RoomDetailModal.dart';
 import 'package:rent_spot/components/UpdateScheduleModal.dart';
 import 'package:rent_spot/models/room.dart';
 import 'package:rent_spot/models/Schedule.dart';
@@ -200,10 +201,10 @@ class _SchedulesViewState extends State<SchedulesView> {
                     ),
                     resourceViewSettings: const ResourceViewSettings(
                         showAvatar: false, visibleResourceCount: 4, size: 80),
-                    resourceViewHeaderBuilder: (BuildContext context,
-                        ResourceViewHeaderDetails details) {
+                    resourceViewHeaderBuilder: (BuildContext context, ResourceViewHeaderDetails details) {
                       final CalendarResource resource = details.resource;
-                      return DecoratedBox(
+
+                      return Container(
                         decoration: const BoxDecoration(
                           border: Border(
                             bottom: BorderSide(color: Colors.white, width: 1),
@@ -275,22 +276,36 @@ class _SchedulesViewState extends State<SchedulesView> {
                       );
                     },
                     onTap: (CalendarTapDetails details) {
-                      if (details.appointments != null &&
-                          details.appointments!.isNotEmpty) {
-                        final Appointment appointment =
-                            details.appointments![0];
-                        final schedule = _schedules
-                            .firstWhere((s) => s.id == appointment.id);
-
-                        if (schedule.organizer.toString() == _currentUserId) {
-                          _showBottomSheet(context, appointment, _users,
-                              _schedules, _rooms, _fetchSchedules);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content: Text(
-                                    'You are not authorized to modify this schedule.')),
+                      if (details.targetElement ==
+                          CalendarElement.resourceHeader) {
+                        final resource = details.resource;
+                        if (resource != null) {
+                          final room = _rooms.firstWhere(
+                            (room) => room.id.toString() == resource.id,
                           );
+                          if (room != null) {
+                            showRoomDetailModal(context, room);
+                          }
+                        }
+                      } else {
+                        // Xử lý các trường hợp tap khác như cũ
+                        if (details.appointments != null &&
+                            details.appointments!.isNotEmpty) {
+                          final Appointment appointment =
+                              details.appointments![0];
+                          final schedule = _schedules
+                              .firstWhere((s) => s.id == appointment.id);
+
+                          if (schedule.organizer.toString() == _currentUserId) {
+                            _showBottomSheet(context, appointment, _users,
+                                _schedules, _rooms, _fetchSchedules);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text(
+                                      'You are not authorized to modify this schedule.')),
+                            );
+                          }
                         }
                       }
                     },
@@ -399,6 +414,16 @@ void _showDeleteModal(BuildContext context, Appointment appointment,
           ),
         ],
       );
+    },
+  );
+}
+
+void showRoomDetailModal(BuildContext context, Room room) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (context) {
+      return RoomDetailModal(room: room);
     },
   );
 }

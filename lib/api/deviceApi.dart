@@ -21,8 +21,9 @@ class DeviceApi {
 
   Future<List<Device>> getAll() async {
     final accessToken = await _getAccessToken();
+    String? buildingId = await storage.read(key: 'buildingId');
     final response = await http.get(
-      Uri.parse('$baseUrl/api/devices'),
+      Uri.parse('$baseUrl/api/devices?buildingId=$buildingId'),
       headers: {
         'Authorization': 'Bearer $accessToken',
       },
@@ -54,10 +55,11 @@ class DeviceApi {
   }
 
   Future<Device> create(Device device, File? imageFile) async {
+    String? buildingId = await storage.read(key: 'buildingId');
     final accessToken = await _getAccessToken();
     final request = http.MultipartRequest(
       'POST',
-      Uri.parse('$baseUrl/api/devices'),
+      Uri.parse('$baseUrl/api/devices?buildingId=$buildingId'),
     );
 
     request.headers['Authorization'] = 'Bearer $accessToken';

@@ -2,8 +2,8 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-
 const Color _textFieldBorderColor = Color(0xFF3DA9FC);
+
 const double _textFieldBorderWidth = 2.0;
 const double _textFieldBorderRadius = 10;
 

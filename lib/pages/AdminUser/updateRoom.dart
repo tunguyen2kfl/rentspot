@@ -10,7 +10,7 @@ import 'package:rent_spot/pages/AdminUser/mainAdminScreen.dart';
 import 'package:rent_spot/stores/userData.dart';
 
 class UpdateRoomView extends StatefulWidget {
-  final Room room; // Nhận phòng cần cập nhật
+  final Room room;
 
   const UpdateRoomView({Key? key, required this.room}) : super(key: key);
 
