@@ -1,31 +1,34 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:rent_spot/api/roomApi.dart';
-import 'package:rent_spot/models/room.dart';
-import 'package:rent_spot/stores/userData.dart'; // Import UserData
-import 'package:rent_spot/pages/AdminUser/updateRoom.dart'; // Import UpdateRoomView
+import 'package:rent_spot/api/deviceApi.dart';
+import 'package:rent_spot/common/constants.dart';
+import 'package:rent_spot/models/device.dart';
+import 'package:rent_spot/pages/AdminUser/updateDevice.dart';
+import 'package:rent_spot/stores/userData.dart';
 
-class RoomManagementView extends StatefulWidget {
+
+class DeviceManagementView extends StatefulWidget {
   @override
-  _RoomManagementViewState createState() => _RoomManagementViewState();
+  _DeviceManagementViewState createState() => _DeviceManagementViewState();
 }
 
-class _RoomManagementViewState extends State<RoomManagementView> {
-  late Future<List<Room>> _rooms;
+class _DeviceManagementViewState extends State<DeviceManagementView> {
+  late Future<List<Device>> _devices;
   bool _isLoading = true;
+  final String baseUrl = Constants.apiUrl;
 
   @override
   void initState() {
     super.initState();
-    _fetchRooms();
+    _fetchDevices();
   }
 
-  Future<void> _fetchRooms() async {
+  Future<void> _fetchDevices() async {
     try {
-      RoomApi roomApi = RoomApi(UserData());
-      _rooms = roomApi.getAll();
+      DeviceApi deviceApi = DeviceApi(UserData());
+      _devices = deviceApi.getAll();
     } catch (e) {
-      print("Error fetching rooms: $e");
+      print("Error fetching devices: $e");
     } finally {
       setState(() {
         _isLoading = false;
@@ -33,24 +36,24 @@ class _RoomManagementViewState extends State<RoomManagementView> {
     }
   }
 
-  Future<void> _deleteRoom(int? roomId) async {
+  Future<void> _deleteDevice(int? deviceId) async {
     try {
-      RoomApi roomApi = RoomApi(UserData());
-      await roomApi.delete(roomId);
-      _fetchRooms();
+      DeviceApi deviceApi = DeviceApi(UserData());
+      await deviceApi.delete(deviceId);
+      _fetchDevices();
     } catch (e) {
-      print("Error deleting room: $e");
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error deleting room: $e')));
+      print("Error deleting device: $e");
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error deleting device: $e')));
     }
   }
 
-  void _showDeleteConfirmation(int? roomId) {
+  void _showDeleteConfirmation(int? deviceId) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: Text('Confirm Delete'),
-          content: Text('Are you sure you want to delete this room?'),
+          content: Text('Are you sure you want to delete this device?'),
           actions: [
             TextButton(
               onPressed: () {
@@ -60,7 +63,7 @@ class _RoomManagementViewState extends State<RoomManagementView> {
             ),
             TextButton(
               onPressed: () {
-                _deleteRoom(roomId);
+                _deleteDevice(deviceId);
                 Navigator.of(context).pop();
               },
               child: Text('Delete'),
@@ -78,52 +81,51 @@ class _RoomManagementViewState extends State<RoomManagementView> {
         padding: const EdgeInsets.all(16.0),
         child: _isLoading
             ? Center(child: CircularProgressIndicator()) // Hiển thị loading
-            : FutureBuilder<List<Room>>(
-          future: _rooms,
+            : FutureBuilder<List<Device>>(
+          future: _devices,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(child: CircularProgressIndicator());
             } else if (snapshot.hasError) {
+              print(snapshot.error);
               return Center(child: Text('Error: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(child: Text('No rooms available.'));
+              return Center(child: Text('No devices available.'));
             }
 
-            final rooms = snapshot.data!;
+            final devices = snapshot.data!;
             return ListView.builder(
-              itemCount: rooms.length,
+              itemCount: devices.length,
               itemBuilder: (context, index) {
-                final room = rooms[index];
+                final device = devices[index];
                 return Card(
                   color: Colors.white,
                   margin: const EdgeInsets.symmetric(vertical: 5),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Name: ${room.name}',
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-                            ),
-                            Text(
-                              'Status: ${room.status}',
-                              style: TextStyle(
-                                color: (room.isOpen ?? false) ? Colors.green : Colors.red,
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
+                        CircleAvatar(
+                          radius: 30,
+                          backgroundImage: device.image != null && device.image!.isNotEmpty
+                              ? NetworkImage('${baseUrl}${device.image}')
+                              : AssetImage('assets/images/default_device.png') as ImageProvider,
                         ),
-                        const SizedBox(height: 8),
-                        Text('Description: ${room.description}'),
-                        const SizedBox(height: 0),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Name: ${device.name}',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                              ),
+                              const SizedBox(height: 8),
+                              Text('Description: ${device.description}'),
+                            ],
+                          ),
+                        ),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             IconButton(
                               icon: const Icon(Icons.edit, color: Colors.blue),
@@ -131,7 +133,7 @@ class _RoomManagementViewState extends State<RoomManagementView> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => UpdateRoomView(room: room),
+                                    builder: (context) => UpdateDeviceView(device: device),
                                   ),
                                 );
                               },
@@ -139,7 +141,7 @@ class _RoomManagementViewState extends State<RoomManagementView> {
                             IconButton(
                               icon: const Icon(Icons.delete, color: Colors.red),
                               onPressed: () {
-                                _showDeleteConfirmation(room.id);
+                                _showDeleteConfirmation(device.id);
                               },
                             ),
                           ],

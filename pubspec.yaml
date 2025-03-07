@@ -41,6 +41,7 @@ dependencies:
   flutter_secure_storage: ^9.2.2
   provider: ^6.1.2
   http: ^1.2.2
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:
@@ -59,7 +60,7 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   assets:
-    - assets/images/Logo.png
+    - assets/images/
     - assets/fonts/
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

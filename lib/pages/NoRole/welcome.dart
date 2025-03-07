@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:rent_spot/pages/NoRole/createBuilding.dart';
+import 'package:rent_spot/pages/NoRole/joinBuilding.dart';
 const double _textFieldBorderRadius = 5.0;
 const Color _textFieldBorderColor = Color(0xFF3DA9FC);
 const double _textFieldBorderWidth = 2.0;
@@ -19,29 +21,29 @@ class WelcomeScreen extends StatelessWidget {
                   child: Image.asset(
                     'assets/images/Logo.png', // Replace with your logo path
                     height: 150,
-                    width: 220,
+                    width: 250,
                     fit: BoxFit.contain,
                   ),
                 ),
                 // Title
-                Text(
+                const Text(
                   'Welcome to RentSpot',
-                  style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
                 ),
                 // Content
-                SizedBox(height: 20), // Add spacing between title and content
-                Text(
+                const SizedBox(height: 5), // Add spacing between title and content
+                const Text(
                   'Please take your action to start!',
-                  style: TextStyle(fontSize: 16),
+                  style: TextStyle(fontSize: 18),
                 ),
-                SizedBox(height: MediaQuery.of(context).size.height * 0.25), // Adjust spacing to push buttons to the bottom
+                SizedBox(height: MediaQuery.of(context).size.height * 0.15), // Adjust spacing to push buttons to the bottom
                 // Create Building Button
                 Container(
                   width: double.infinity,
                   margin: EdgeInsets.only(bottom: 10),
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      // Action for Create Building
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => CreateBuildingView()));
                     },
                     icon: Icon(Icons.add_business, color: Colors.white,), // Example icon
                     label: Text('Create your building', style: TextStyle(fontSize: 18, color: Colors.white)),
@@ -59,7 +61,7 @@ class WelcomeScreen extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      // Action for Join Building
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => JoinBuildingView()));
                     },
                     icon: Icon(Icons.group_add, color: _textFieldBorderColor,), // Example icon
                     label: Text('Join building', style: TextStyle(fontSize: 18, color: _textFieldBorderColor)),

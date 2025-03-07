@@ -1,12 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:intl/intl.dart';
-import 'package:syncfusion_flutter_calendar/calendar.dart';
+import 'package:rent_spot/api/scheduleApi.dart';
+import 'package:rent_spot/common/constants.dart';
+import 'package:rent_spot/models/Schedule.dart';
+import 'package:rent_spot/models/room.dart';
+import 'package:rent_spot/models/user.dart';
+import 'package:rent_spot/pages/UserView/mainScreen.dart';
+import 'package:rent_spot/stores/userData.dart';
 
 class UpdateScheduleModal extends StatefulWidget {
-  final Appointment appointment;
-  const UpdateScheduleModal({Key? key, required this.appointment})
-      : super(key: key);
+  final Schedule schedule;
+  final List<User> users;
+  final List<Room> rooms;
+
+  const UpdateScheduleModal({
+    Key? key,
+    required this.schedule,
+    required this.users,
+    required this.rooms,
+  }) : super(key: key);
 
   @override
   _UpdateScheduleModalState createState() => _UpdateScheduleModalState();
@@ -15,7 +28,6 @@ class UpdateScheduleModal extends StatefulWidget {
 class _UpdateScheduleModalState extends State<UpdateScheduleModal> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _summaryController;
-  late TextEditingController _organizerController;
   late List<String> _attendees;
   late TimeOfDay _startTime;
   late TimeOfDay _endTime;
@@ -23,59 +35,91 @@ class _UpdateScheduleModalState extends State<UpdateScheduleModal> {
   late TextEditingController _descriptionController;
   late TextEditingController _attendeeController;
   late DateTime _selectedDate;
+  String? _selectedOrganizerId;
+  String? _selectedRoomId;
 
   @override
   void initState() {
     super.initState();
-    _summaryController =
-        TextEditingController(text: widget.appointment.subject);
-    _organizerController =
-        TextEditingController(); // Initialize with existing data if available
-    _attendees = []; // Initialize with existing data if available
+    _summaryController = TextEditingController(text: widget.schedule.summary);
+    _attendees = widget.schedule.attendees
+            ?.split(',')
+            .where((attendee) => attendee.isNotEmpty)
+            .toList() ??
+        [];
     _attendeeController = TextEditingController();
-    _startTime = TimeOfDay.fromDateTime(widget.appointment.startTime);
-    _endTime = TimeOfDay.fromDateTime(widget.appointment.endTime);
-    _selectedColor = widget.appointment.color.value;
-    _selectedDate = DateTime.now();
+    _startTime = widget.schedule.startTime ?? TimeOfDay.now();
+    _endTime = widget.schedule.endTime ?? TimeOfDay.now();
+    _selectedColor = int.parse(
+        widget.schedule.color?.replaceFirst('#', '0xff') ?? '0xffffffff');
+    _selectedDate = widget.schedule.date ?? DateTime.now();
     _descriptionController =
-        TextEditingController(); // Initialize with existing data if available
+        TextEditingController(text: widget.schedule.description);
+    _selectedOrganizerId = widget.schedule.organizer?.toString();
+    _selectedRoomId = widget.schedule.roomId?.toString();
   }
 
-  void submit() {
+  void submit() async {
     if (_formKey.currentState!.validate()) {
-      // Get values from controllers and other fields
       final String summary = _summaryController.text;
-      final String organizer = _organizerController.text;
+      final String organizer = _selectedOrganizerId ?? '1';
+      final String selectedRoomId = _selectedRoomId ?? '1';
       final List<String> attendees = _attendees;
       final TimeOfDay startTime = _startTime;
       final TimeOfDay endTime = _endTime;
-      final int colors = _selectedColor;
       final String description = _descriptionController.text;
-      final DateTime selectedDate = _selectedDate;
+      // final DateTime selectedDate = _selectedDate;
+      final DateTime selectedDate = DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+        _startTime.hour,
+        _startTime.minute,
+      );
+      String colorString = '#${_selectedColor.toRadixString(16).substring(2)}';
 
+      Schedule updatedSchedule = Schedule(
+        id: widget.schedule.id,
+        summary: summary,
+        organizer: int.parse(organizer),
+        attendees: attendees.join(','),
+        startTime: startTime,
+        endTime: endTime,
+        color: colorString,
+        description: description,
+        date: selectedDate,
+        roomId: int.parse(selectedRoomId),
+      );
 
-      print(summary);
-      print(organizer);
-      print(attendees);
-      print(startTime);
-      print(endTime);
-      print(colors);
-      print(description);
-      print(_selectedDate);
-
-      // Navigator.pop(context); // Close the modal
+      try {
+        await ScheduleApi(UserData()).update(updatedSchedule);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Schedule updated successfully!')),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update schedule: $e')),
+        );
+      }
     }
   }
 
   List<Widget> _buildAttendeesSection() {
     return [
       TextFormField(
-        controller: _attendeeController, // Controller for attendee email input
-        decoration: const InputDecoration(hintText: 'Enter email'),
+        controller: _attendeeController,
+        decoration:
+            Constants.customInputDecoration.copyWith(hintText: 'Enter email'),
       ),
       const SizedBox(height: 10.0),
       ElevatedButton(
-        style: ButtonStyle(backgroundColor: MaterialStateProperty.all<Color>(const Color(0xFF3DA9FC))),
+        style: ButtonStyle(
+            backgroundColor:
+                MaterialStateProperty.all<Color>(const Color(0xFF3DA9FC))),
         onPressed: () {
           if (RegExp(
                   r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
@@ -119,12 +163,19 @@ class _UpdateScheduleModalState extends State<UpdateScheduleModal> {
                 );
                 if (pickedTime != null) {
                   setState(() {
+                    if (pickedTime.hour > _endTime.hour ||
+                        (pickedTime.hour == _endTime.hour &&
+                            pickedTime.minute >= _endTime.minute)) {
+                      _endTime =
+                          TimeOfDay(hour: pickedTime.hour + 1, minute: 0);
+                    }
                     _startTime = pickedTime;
                   });
                 }
               },
               child: InputDecorator(
-                decoration: const InputDecoration(labelText: 'Start Time'),
+                decoration: Constants.customInputDecoration
+                    .copyWith(labelText: 'Start Time'),
                 child: Text(_startTime.format(context)),
               ),
             ),
@@ -139,12 +190,22 @@ class _UpdateScheduleModalState extends State<UpdateScheduleModal> {
                 );
                 if (pickedTime != null) {
                   setState(() {
-                    _endTime = pickedTime;
+                    if (pickedTime.hour < _startTime.hour ||
+                        (pickedTime.hour == _startTime.hour &&
+                            pickedTime.minute <= _startTime.minute)) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('End Time must be after Start Time')),
+                      );
+                    } else {
+                      _endTime = pickedTime;
+                    }
                   });
                 }
               },
               child: InputDecorator(
-                decoration: const InputDecoration(labelText: 'End Time'),
+                decoration: Constants.customInputDecoration
+                    .copyWith(labelText: 'End Time'),
                 child: Text(_endTime.format(context)),
               ),
             ),
@@ -191,7 +252,7 @@ class _UpdateScheduleModalState extends State<UpdateScheduleModal> {
           width: 50,
           height: 50,
           decoration: BoxDecoration(
-            color: Color(_selectedColor.isNaN ? 0xFFFFFF :_selectedColor),
+            color: Color(_selectedColor),
             borderRadius: BorderRadius.circular(25),
           ),
         ),
@@ -202,7 +263,6 @@ class _UpdateScheduleModalState extends State<UpdateScheduleModal> {
   @override
   void dispose() {
     _summaryController.dispose();
-    _organizerController.dispose();
     _descriptionController.dispose();
     _attendeeController.dispose();
     super.dispose();
@@ -211,100 +271,145 @@ class _UpdateScheduleModalState extends State<UpdateScheduleModal> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Use Scaffold for full-screen layout
-      appBar: AppBar(
-        title: const Text('Update Schedule',
-            style: TextStyle(
-                color: Colors.black,
-                fontSize: 24,
-                fontWeight: FontWeight.bold)),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+        appBar: AppBar(
+          backgroundColor: Colors.white60,
+          title: const Text('Update Schedule',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500)),
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back_outlined,
+              size: 22,
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          actions: <Widget>[
+            TextButton(
+              style: ButtonStyle(
+                foregroundColor:
+                    MaterialStateProperty.all<Color>(const Color(0xFF3DA9FC)),
+              ),
+              onPressed: submit,
+              child: const Text(
+                'Update',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
         ),
-        actions: <Widget>[
-          ElevatedButton(
-            style: ButtonStyle(
-                backgroundColor:
-                    MaterialStateProperty.all<Color>(const Color(0xFF3DA9FC))),
-            onPressed: submit,
-            child: const Text(
-              'Add',
-              style: TextStyle(color: Colors.white),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    TextFormField(
+                      controller: _summaryController,
+                      decoration: Constants.customInputDecoration
+                          .copyWith(labelText: 'Schedule Summary'),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a summary';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16.0),
+                    DropdownButtonFormField<String>(
+                      value: _selectedOrganizerId,
+                      decoration: Constants.customInputDecoration
+                          .copyWith(labelText: 'Organizer'),
+                      items: widget.users.map((User user) {
+                        return DropdownMenuItem<String>(
+                          value: user.id.toString(),
+                          child: Text(user.displayName ?? ""),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedOrganizerId = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null) {
+                          return 'Please select an organizer';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16.0),
+                    DropdownButtonFormField<String>(
+                      value: _selectedRoomId,
+                      decoration: Constants.customInputDecoration
+                          .copyWith(labelText: 'Room'),
+                      items: widget.rooms.map((Room room) {
+                        return DropdownMenuItem<String>(
+                          value: room.id.toString(),
+                          child: Text(room.name ?? ""),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedRoomId = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null) {
+                          return 'Please select a room';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16.0),
+                    const Text('Attendees', textAlign: TextAlign.left),
+                    ..._buildAttendeesSection(),
+                    const SizedBox(height: 16.0),
+                    GestureDetector(
+                      onTap: () async {
+                        final DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: _selectedDate,
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2025),
+                        );
+                        if (pickedDate != null && pickedDate != _selectedDate) {
+                          setState(() {
+                            _selectedDate = pickedDate;
+                          });
+                        }
+                      },
+                      child: InputDecorator(
+                        decoration: Constants.customInputDecoration
+                            .copyWith(labelText: 'Date'),
+                        child: Text(
+                            DateFormat('yyyy-MM-dd').format(_selectedDate)),
+                      ),
+                    ),
+                    const SizedBox(height: 16.0),
+                    ..._buildTimePickers(),
+                    const SizedBox(height: 16.0),
+                    ..._buildColorPicker(),
+                    const SizedBox(height: 16.0),
+                    TextFormField(
+                      controller: _descriptionController,
+                      decoration: Constants.customInputDecoration
+                          .copyWith(labelText: 'Description'),
+                      maxLines: null,
+                      keyboardType: TextInputType.multiline,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          // Add padding to the Form
-          padding: const EdgeInsets.all(16.0), // Adjust padding as needed
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                TextFormField(
-                  controller: _summaryController,
-                  decoration:
-                      const InputDecoration(labelText: 'Schedule Summary'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a summary';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16.0),
-                TextFormField(
-                  controller: _organizerController,
-                  decoration: const InputDecoration(labelText: 'Organizer'),
-                ),
-                const SizedBox(height: 16.0),
-                // Attendees Section
-                const Text('Attendees', textAlign: TextAlign.left),
-                ..._buildAttendeesSection(),
-                const SizedBox(height: 16.0),
-                //DatePicker
-                GestureDetector(
-                  onTap: () async {
-                    final DateTime? pickedDate = await showDatePicker(
-                      context: context,
-                      initialDate: _selectedDate,
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime(2025),
-                    );
-                    if (pickedDate != null && pickedDate != _selectedDate) {
-                      setState(() {
-                        _selectedDate = pickedDate;
-                      });
-                    }
-                  },
-                  child: InputDecorator(
-                    decoration: const InputDecoration(labelText: 'Date'),
-                    child: Text(DateFormat('yyyy-MM-dd').format(_selectedDate)), // Format date
-                  ),
-                ),
-                const SizedBox(height: 16.0),
-                // Start and End Time Pickers
-                ..._buildTimePickers(),
-                const SizedBox(height: 16.0),
-                // Color Picker
-                ..._buildColorPicker(),
-                const SizedBox(height: 16.0),
-                TextFormField(
-                  controller: _descriptionController,
-                  decoration: const InputDecoration(labelText: 'Description'),
-                  maxLines: 3, // Allow multiple lines for description
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+        ));
   }
 }

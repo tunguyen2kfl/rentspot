@@ -1,4 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:rent_spot/api/userApi.dart';
+import 'package:rent_spot/common/constants.dart';
+import 'package:rent_spot/pages/AdminUser/mainAdminScreen.dart';
+import 'package:rent_spot/pages/NoRole/welcome.dart';
+import 'package:rent_spot/pages/UserView/mainScreen.dart';
+import 'package:rent_spot/pages/register.dart';
+import 'package:rent_spot/stores/userData.dart';
 
 void main() {
   runApp(MyApp());
@@ -17,25 +25,6 @@ const double _textFieldBorderRadius = 10;
 const Color _textFieldBorderColor = Color(0xFF3DA9FC);
 const double _textFieldBorderWidth = 2.0;
 
-// Reusable input decoration
-final InputDecoration customInputDecoration = InputDecoration(
-  enabledBorder: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(10),
-    borderSide:
-        BorderSide(color: _textFieldBorderColor, width: _textFieldBorderWidth),
-  ),
-  focusedBorder: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(10),
-    borderSide:
-        BorderSide(color: _textFieldBorderColor, width: _textFieldBorderWidth),
-  ),
-  border: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(10),
-  ),
-  labelStyle: TextStyle(color: _textFieldBorderColor), // Change label color to blue
-  // hintStyle: TextStyle(color: Colors.grey), // Change hint color to grey
-);
-
 class LoginScreen extends StatefulWidget {
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -45,9 +34,71 @@ class _LoginScreenState extends State<LoginScreen> {
   // Controllers for text fields
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  bool _validateInputs() {
+    if (_usernameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Username cannot be empty')),
+      );
+      return false;
+    }
+    if (_passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Password cannot be empty')),
+      );
+      return false;
+    }
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final userData = Provider.of<UserData>(context);
+    final userApi = UserApi(userData);
+
+    void login() async {
+      print("LOGIN");
+      setState(() {
+        _isLoading = true;
+      });
+
+      if (!_validateInputs()) {
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      try {
+        final res = await userApi.login(
+            _usernameController.text, _passwordController.text);
+        if (res.role == null) {
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => WelcomeScreen()));
+        } else if (res.role == 'user') {
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (context) => MainScreen()));
+        } else if (res.role == 'building-admin') {
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => MainAdminScreen()));
+        } else {
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => WelcomeScreen()));
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.toString())));
+      } finally {
+        if (mounted) {
+          // Kiểm tra xem widget còn trong cây không
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    }
+
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -58,11 +109,11 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 // Logo
                 Container(
-                  margin: const EdgeInsets.only(bottom: 60),
+                  margin: const EdgeInsets.only(bottom: 20),
                   child: Image.asset(
                     'assets/images/Logo.png', // Replace with your logo path
-                    height: 150,
-                    width: 220,
+                    height: 200,
+                    width: 270,
                     fit: BoxFit.contain,
                   ),
                 ),
@@ -71,8 +122,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding: const EdgeInsets.only(bottom: 20),
                   child: TextField(
                     controller: _usernameController,
-                    decoration:
-                        customInputDecoration.copyWith(labelText: 'Username'),
+                    decoration: Constants.customInputDecoration
+                        .copyWith(labelText: 'Username'),
                   ),
                 ),
                 // Input Password
@@ -81,8 +132,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: TextField(
                     controller: _passwordController,
                     obscureText: true,
-                    decoration:
-                        customInputDecoration.copyWith(labelText: 'Password'),
+                    decoration: Constants.customInputDecoration
+                        .copyWith(labelText: 'Password'),
                   ),
                 ),
                 // Login Button
@@ -90,10 +141,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: double.infinity,
                   margin: const EdgeInsets.only(bottom: 10),
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Action for Login
-                      login();
-                    },
+                    onPressed: _isLoading
+                        ? null
+                        : () {
+                            // Action for Login
+                            login();
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _textFieldBorderColor,
                       shape: RoundedRectangleBorder(
@@ -101,13 +154,23 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       minimumSize: Size(0, 50),
                     ),
-                    child: const Text(
-                      'Login',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18, // Set your desired font size here
-                      ),
-                    ),
+                    child: _isLoading
+                        ? SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                              strokeWidth: 2.0,
+                            ),
+                          )
+                        : const Text(
+                            'Login',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                            ),
+                          ),
                   ),
                 ),
                 // Register Button
@@ -116,12 +179,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   margin: const EdgeInsets.only(bottom: 10),
                   child: ElevatedButton(
                     onPressed: () {
-                      // Action for Login
-                      login();
+                      // Action for Register
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => RegisterScreen()));
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
-                      side: const BorderSide(color: Color(0xFF3DA9FC), width: 1.5),
+                      side: const BorderSide(
+                          color: Color(0xFF3DA9FC), width: 1.5),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(5),
                       ),
@@ -131,7 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       'Register',
                       style: TextStyle(
                         color: _textFieldBorderColor,
-                        fontSize: 18, // Set your desired font size here
+                        fontSize: 18,
                       ),
                     ),
                   ),
@@ -143,12 +210,4 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-
-  void login() {
-    // Print input values
-    print("Username: ${_usernameController.text}");
-    print("Password: ${_passwordController.text}");
-  }
-
-// ... (register() function remains the same)
 }
