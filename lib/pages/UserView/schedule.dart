@@ -17,11 +17,15 @@ import 'package:intl/intl.dart';
 String _formatTime(TimeOfDay time) {
   final now = DateTime.now();
   final formattedTime =
-      DateTime(now.year, now.month, now.day, time.hour, time.minute);
+  DateTime(now.year, now.month, now.day, time.hour, time.minute);
   return DateFormat('hh:mm a').format(formattedTime);
 }
 
 class SchedulesView extends StatefulWidget {
+  final DateTime? initialDate;
+
+  const SchedulesView({Key? key, this.initialDate}) : super(key: key);
+
   @override
   _SchedulesViewState createState() => _SchedulesViewState();
 }
@@ -30,7 +34,7 @@ final FlutterSecureStorage storage = FlutterSecureStorage();
 
 class _SchedulesViewState extends State<SchedulesView> {
   String? _currentUserId;
-  DateTime _selectedDate = DateTime.now();
+  late DateTime _selectedDate;
   CalendarController _calendarController = CalendarController();
   late _DataSource _events;
   List<Room> _rooms = [];
@@ -41,6 +45,7 @@ class _SchedulesViewState extends State<SchedulesView> {
   @override
   void initState() {
     super.initState();
+    _selectedDate = widget.initialDate ?? DateTime.now(); // Thiết lập ngày
     _fetchCurrentUserId();
     _fetchRooms();
     _fetchUsers();
@@ -140,179 +145,179 @@ class _SchedulesViewState extends State<SchedulesView> {
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : Column(
-              children: [
-                DateSlider(
-                  selectedDate: _selectedDate,
-                  onDateSelected: (selectedDate) {
-                    _calendarController.displayDate = selectedDate;
+        children: [
+          DateSlider(
+            selectedDate: _selectedDate,
+            onDateSelected: (selectedDate) {
+              _calendarController.displayDate = selectedDate;
+              setState(() {
+                _selectedDate = selectedDate;
+              });
+            },
+          ),
+          Expanded(
+            child: SfCalendar(
+              view: CalendarView.timelineDay,
+              onViewChanged: (data) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (_selectedDate != data.visibleDates[0]) {
                     setState(() {
-                      _selectedDate = selectedDate;
+                      _selectedDate = data.visibleDates[0];
                     });
-                  },
+                  }
+                });
+              },
+              dataSource: _events,
+              initialDisplayDate: _selectedDate, // Sử dụng ngày đã chọn
+              controller: _calendarController,
+              headerHeight: 50,
+              headerStyle: const CalendarHeaderStyle(
+                backgroundColor: Colors.white,
+                textAlign: TextAlign.left,
+                textStyle: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black,
+                  fontSize: 24,
                 ),
-                Expanded(
-                  child: SfCalendar(
-                    view: CalendarView.timelineDay,
-                    onViewChanged: (data) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (_selectedDate != data.visibleDates[0]) {
-                          setState(() {
-                            _selectedDate = data.visibleDates[0];
-                          });
-                        }
-                      });
-                    },
-                    dataSource: _events,
-                    initialDisplayDate: DateTime.now(),
-                    controller: _calendarController,
-                    headerHeight: 50,
-                    headerStyle: const CalendarHeaderStyle(
-                      backgroundColor: Colors.white,
-                      textAlign: TextAlign.left,
-                      textStyle: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black,
-                        fontSize: 24,
-                      ),
-                    ),
-                    todayHighlightColor: const Color(0xFF3DA9FC),
-                    showDatePickerButton: true,
-                    showTodayButton: true,
-                    cellBorderColor: Colors.blue,
-                    timeSlotViewSettings: const TimeSlotViewSettings(
-                      timeIntervalWidth: 200,
-                      timeInterval: Duration(minutes: 60),
-                      timeFormat: 'hh:mm a',
-                      timeTextStyle: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF006bb3),
-                      ),
-                    ),
-                    viewHeaderStyle: const ViewHeaderStyle(
-                      dayTextStyle: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      dateTextStyle: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    resourceViewSettings: const ResourceViewSettings(
-                        showAvatar: false, visibleResourceCount: 4, size: 80),
-                    resourceViewHeaderBuilder: (BuildContext context, ResourceViewHeaderDetails details) {
-                      final CalendarResource resource = details.resource;
+              ),
+              todayHighlightColor: const Color(0xFF3DA9FC),
+              showDatePickerButton: true,
+              showTodayButton: true,
+              cellBorderColor: Colors.blue,
+              timeSlotViewSettings: const TimeSlotViewSettings(
+                timeIntervalWidth: 200,
+                timeInterval: Duration(minutes: 60),
+                timeFormat: 'hh:mm a',
+                timeTextStyle: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF006bb3),
+                ),
+              ),
+              viewHeaderStyle: const ViewHeaderStyle(
+                dayTextStyle: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
+                dateTextStyle: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              resourceViewSettings: const ResourceViewSettings(
+                  showAvatar: false, visibleResourceCount: 4, size: 80),
+              resourceViewHeaderBuilder: (BuildContext context, ResourceViewHeaderDetails details) {
+                final CalendarResource resource = details.resource;
 
-                      return Container(
-                        decoration: const BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(color: Colors.white, width: 1),
-                          ),
-                          color: Color(0xFF006bb3),
-                        ),
-                        child: Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              resource.displayName,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                    appointmentBuilder: (BuildContext context,
-                        CalendarAppointmentDetails details) {
-                      final Appointment appointment =
-                          details.appointments.first;
-                      final schedule =
-                          _schedules.firstWhere((s) => s.id == appointment.id);
-                      final organizer =
-                          _users.firstWhere((u) => u.id == schedule.organizer);
-                      String cancelString =
-                          schedule.status == 'cancel' ? " [CANCEL]" : "";
-                      return Container(
-                        height: 120,
-                        decoration: BoxDecoration(
-                          color: appointment.color
-                              .withOpacity(schedule.status == 'pending'
-                                  ? 0.5
-                                  : schedule.status == 'cancel'
-                                      ? 0.8
-                                      : 1.0),
-                          borderRadius: BorderRadius.circular(4.0),
-                        ),
-                        padding: const EdgeInsets.only(left: 8),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              appointment.subject + cancelString,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white),
-                            ),
-                            if (schedule.startTime != null &&
-                                schedule.endTime != null)
-                              Text(
-                                '${_formatTime(schedule.startTime!)} - ${_formatTime(schedule.endTime!)}',
-                                style: const TextStyle(
-                                    fontSize: 12.0, color: Colors.white),
-                              ),
-                            if (organizer != null)
-                              Text(
-                                '${organizer.displayName}',
-                                style: const TextStyle(
-                                    fontSize: 12.0, color: Colors.white),
-                              ),
-                          ],
-                        ),
-                      );
-                    },
-                    onTap: (CalendarTapDetails details) {
-                      if (details.targetElement ==
-                          CalendarElement.resourceHeader) {
-                        final resource = details.resource;
-                        if (resource != null) {
-                          final room = _rooms.firstWhere(
-                            (room) => room.id.toString() == resource.id,
-                          );
-                          if (room != null) {
-                            showRoomDetailModal(context, room);
-                          }
-                        }
-                      } else {
-                        // Xử lý các trường hợp tap khác như cũ
-                        if (details.appointments != null &&
-                            details.appointments!.isNotEmpty) {
-                          final Appointment appointment =
-                              details.appointments![0];
-                          final schedule = _schedules
-                              .firstWhere((s) => s.id == appointment.id);
-
-                          if (schedule.organizer.toString() == _currentUserId) {
-                            _showBottomSheet(context, appointment, _users,
-                                _schedules, _rooms, _fetchSchedules);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: Text(
-                                      'You are not authorized to modify this schedule.')),
-                            );
-                          }
-                        }
-                      }
-                    },
+                return Container(
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: Colors.white, width: 1),
+                    ),
+                    color: Color(0xFF006bb3),
                   ),
-                ),
-              ],
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        resource.displayName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+              appointmentBuilder: (BuildContext context,
+                  CalendarAppointmentDetails details) {
+                final Appointment appointment =
+                    details.appointments.first;
+                final schedule =
+                _schedules.firstWhere((s) => s.id == appointment.id);
+                final organizer =
+                _users.firstWhere((u) => u.id == schedule.organizer);
+                String cancelString =
+                schedule.status == 'cancel' ? " [CANCEL]" : "";
+                return Container(
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: appointment.color
+                        .withOpacity(schedule.status == 'pending'
+                        ? 0.5
+                        : schedule.status == 'cancel'
+                        ? 0.8
+                        : 1.0),
+                    borderRadius: BorderRadius.circular(4.0),
+                  ),
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        appointment.subject + cancelString,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
+                      ),
+                      if (schedule.startTime != null &&
+                          schedule.endTime != null)
+                        Text(
+                          '${_formatTime(schedule.startTime!)} - ${_formatTime(schedule.endTime!)}',
+                          style: const TextStyle(
+                              fontSize: 12.0, color: Colors.white),
+                        ),
+                      if (organizer != null)
+                        Text(
+                          '${organizer.displayName}',
+                          style: const TextStyle(
+                              fontSize: 12.0, color: Colors.white),
+                        ),
+                    ],
+                  ),
+                );
+              },
+              onTap: (CalendarTapDetails details) {
+                if (details.targetElement ==
+                    CalendarElement.resourceHeader) {
+                  final resource = details.resource;
+                  if (resource != null) {
+                    final room = _rooms.firstWhere(
+                          (room) => room.id.toString() == resource.id,
+                    );
+                    if (room != null) {
+                      showRoomDetailModal(context, room);
+                    }
+                  }
+                } else {
+                  // Xử lý các trường hợp tap khác như cũ
+                  if (details.appointments != null &&
+                      details.appointments!.isNotEmpty) {
+                    final Appointment appointment =
+                    details.appointments![0];
+                    final schedule = _schedules
+                        .firstWhere((s) => s.id == appointment.id);
+
+                    if (schedule.organizer.toString() == _currentUserId) {
+                      _showBottomSheet(context, appointment, _users,
+                          _schedules, _rooms, _fetchSchedules);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(
+                                'You are not authorized to modify this schedule.')),
+                      );
+                    }
+                  }
+                }
+              },
             ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -371,7 +376,7 @@ void _showUpdateModal(BuildContext context, Appointment appointment,
     builder: (BuildContext context) {
       return Dialog.fullscreen(
         child:
-            UpdateScheduleModal(schedule: schedule, users: users, rooms: rooms),
+        UpdateScheduleModal(schedule: schedule, users: users, rooms: rooms),
       );
     },
   );
@@ -396,7 +401,7 @@ void _showDeleteModal(BuildContext context, Appointment appointment,
             child: const Text('Delete'),
             onPressed: () async {
               final schedule =
-                  schedules.firstWhere((s) => s.id == appointment.id);
+              schedules.firstWhere((s) => s.id == appointment.id);
               final scheduleApi = ScheduleApi(UserData());
               try {
                 await scheduleApi.delete(schedule.id);

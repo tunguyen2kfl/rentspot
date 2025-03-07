@@ -13,6 +13,10 @@ import 'package:rent_spot/stores/userData.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class CreateSchedulePage extends StatefulWidget {
+  final DateTime? initialDate;
+
+  const CreateSchedulePage({Key? key, this.initialDate}) : super(key: key);
+
   @override
   _CreateSchedulePageState createState() => _CreateSchedulePageState();
 }
@@ -42,7 +46,8 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
     _startTime = TimeOfDay.now();
     _endTime = TimeOfDay.now();
     _selectedColor = 0xFF3DA9FC;
-    _selectedDate = DateTime.now();
+    // Sử dụng giá trị từ prop hoặc ngày hiện tại
+    _selectedDate = widget.initialDate ?? DateTime.now();
     _descriptionController = TextEditingController();
     _fetchData();
   }
@@ -74,7 +79,6 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
       final TimeOfDay startTime = _startTime;
       final TimeOfDay endTime = _endTime;
       final String description = _descriptionController.text;
-      // final DateTime selectedDate = _selectedDate;
       final DateTime selectedDate = DateTime(
         _selectedDate.year,
         _selectedDate.month,
@@ -167,8 +171,7 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
                   setState(() {
                     if (pickedTime.hour > _endTime.hour ||
                         (pickedTime.hour == _endTime.hour && pickedTime.minute >= _endTime.minute)) {
-                      // Nếu StartTime lớn hơn hoặc bằng EndTime, cập nhật EndTime
-                      _endTime = TimeOfDay(hour: pickedTime.hour + 1, minute: 0); // Tăng lên 1 giờ
+                      _endTime = TimeOfDay(hour: pickedTime.hour + 1, minute: 0);
                     }
                     _startTime = pickedTime;
                   });
@@ -190,10 +193,8 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
                 );
                 if (pickedTime != null) {
                   setState(() {
-                    // Chỉ cho phép chọn EndTime lớn hơn StartTime
                     if (pickedTime.hour < _startTime.hour ||
                         (pickedTime.hour == _startTime.hour && pickedTime.minute <= _startTime.minute)) {
-                      // Nếu EndTime nhỏ hơn hoặc bằng StartTime, hiển thị thông báo lỗi
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('End Time must be after Start Time')),
                       );

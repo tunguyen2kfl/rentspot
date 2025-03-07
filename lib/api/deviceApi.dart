@@ -14,9 +14,8 @@ class DeviceApi {
 
   DeviceApi(this.userData);
 
-  // Lấy accessToken từ FlutterSecureStorage
   Future<String?> _getAccessToken() async {
-    return await storage.read(key: 'accessToken'); // Lấy accessToken
+    return await storage.read(key: 'accessToken');
   }
 
   Future<List<Device>> getAll() async {
